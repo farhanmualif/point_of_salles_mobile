@@ -95,23 +95,16 @@ class EWalletPaymentStatus {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'business_id': businessId,
-      'reference_id': referenceId,
-      // ... tambahkan semua field lainnya
-    };
-  }
+  
 }
 
 class ChannelProperties {
   final String successRedirectUrl;
-  final String failureRedirectUrl;
+  final String? failureRedirectUrl;
 
   ChannelProperties({
     required this.successRedirectUrl,
-    required this.failureRedirectUrl,
+     this.failureRedirectUrl,
   });
 
   factory ChannelProperties.fromJson(Map<String, dynamic> json) {

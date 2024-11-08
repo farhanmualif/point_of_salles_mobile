@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:point_of_salles_mobile_app/models/transaction.dart';
 import 'package:point_of_salles_mobile_app/services/product_service.dart';
+import 'package:point_of_salles_mobile_app/services/transaction_service.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -10,13 +12,47 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
+  final TransactionService _transactionService = TransactionService();
   int countProduct = 0;
   int totalStockProduct = 0;
+  int? _totalTransaction = 0;
+  bool _isLoading = true;
+  final bool _mounted = true;
 
   @override
   void initState() {
     super.initState();
     getProduct();
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    if (!_mounted) return;
+
+    try {
+      setState(() => _isLoading = true);
+      final response = await _transactionService.getTransactionHistory();
+
+      if (!_mounted) return;
+
+      if (response.status) {
+        setState(() {
+          // _transactions = response.data ?? [];
+          _totalTransaction = response.data?.length;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!_mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> getProduct() async {
@@ -84,7 +120,7 @@ class _MenuScreenState extends State<MenuScreen> {
                       icon: Icons.shopping_cart,
                       iconColor: Colors.green,
                       title: 'Anda Sudah Melayani',
-                      value: '0 Transaksi',
+                      value: '$_totalTransaction Transaksi',
                       valueColor: Colors.green,
                     ),
                   ),

@@ -76,7 +76,7 @@ class PaymentService {
         },
       );
 
-      debugPrint(response.body);
+      debugPrint("response create payment ${response.body}");
 
       final responseBody = json.decode(response.body);
 

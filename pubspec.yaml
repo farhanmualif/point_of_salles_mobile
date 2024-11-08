@@ -74,6 +74,7 @@ flutter:
     - assets/icons/log-out.svg
     - assets/logo/logo.png
     - assets/images/watch.png
+    - assets/images/default-user.png
     # - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -5,6 +5,7 @@ import 'package:point_of_salles_mobile_app/screens/main_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/payment_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/payment_success.dart';
 import 'package:point_of_salles_mobile_app/screens/splash_screen.dart';
+import 'package:point_of_salles_mobile_app/screens/update_profile.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -78,6 +79,17 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (context) => PaymentSuccessScreen(data: data),
             );
+          case '/edit_profile_screen':
+            final args = settings.arguments as Map<String, String>;
+            return MaterialPageRoute(
+              builder: (context) => EditProfilePage(
+                username: args['username'] ?? '',
+                email: args['email'] ?? '',
+                noHp: args['noHp'] ?? '',
+                alamat: args['alamat'] ?? '',
+                karyawanId: args['karyawanId'] ?? '',
+              ),
+            );
           default:
             return MaterialPageRoute(
               builder: (context) => const ErrorScreen(
@@ -90,7 +102,7 @@ class MyApp extends StatelessWidget {
         primaryColor: AppColor.primary,
         fontFamily: 'Roboto',
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(  
+        colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.white,
         ).copyWith(error: Colors.redAccent),
       ),

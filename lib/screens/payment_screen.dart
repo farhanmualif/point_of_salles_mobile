@@ -217,7 +217,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 31, 26, 26),
         elevation: 0,
         centerTitle: true,
         title: const Text(
@@ -348,11 +347,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   const SizedBox(height: 24.0),
                   Center(
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        debugPrint("test ${_transaksi!.vaPaymentStatus}");
                         if (_transaksi!.vaPaymentStatus != null) {
-                          _checkPaymentStatus(_transaksi!.vaPaymentStatus!.id);
+                          await _checkPaymentStatus(
+                              _transaksi!.vaPaymentStatus!.id);
                         } else if (_transaksi!.ewalletPaymentStatus != null) {
-                          _checkPaymentStatus(
+                          await _checkPaymentStatus(
                               _transaksi!.ewalletPaymentStatus!.id);
                         }
                       },
@@ -399,31 +400,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _checkPaymentStatus(String idTransaction) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
-
+    setState(() {
+      _isLoading = true;
+    });
     try {
       BaseResponse checkPayment = await _paymentService.checkPaymentStatus(
         idTransaction: idTransaction,
       );
 
       debugPrint("test");
+      debugPrint("payment data: ${checkPayment.data}");
       if (checkPayment.data != null &&
-          checkPayment.data['status'] == 'INACTIVE') {
+          (checkPayment.data['status'] == 'SUCCEEDED' ||
+              checkPayment.data['status'] == 'INACTIVE')) {
         if (!mounted) return;
 
-        debugPrint("check payment data ${json.encode(checkPayment.data)}");
-
-        Navigator.of(context).pushNamed(
+        Navigator.of(context).pushReplacementNamed(
           '/payment_success',
           arguments: checkPayment.data,
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Belum melakukan pembayaran'),
+            duration: Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
@@ -436,6 +438,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
           duration: const Duration(seconds: 3),
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 }

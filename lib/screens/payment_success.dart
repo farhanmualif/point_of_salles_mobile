@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
-  const PaymentSuccessScreen({super.key, required Map<String, dynamic> data});
+  final Map<String, dynamic> data; // Menyimpan data yang diterima
+
+  const PaymentSuccessScreen({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +44,7 @@ class PaymentSuccessScreen extends StatelessWidget {
             // Success Text
             const Center(
               child: Text(
-                'OVO Top up Successful!',
+                'Payment Successful!',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -53,7 +55,7 @@ class PaymentSuccessScreen extends StatelessWidget {
             // Subtitle
             Center(
               child: Text(
-                'Successfully topped up \$180 to Tanjiro',
+                'Successfully topped up ${data['expected_amount']} to ${data['name']}',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -72,13 +74,18 @@ class PaymentSuccessScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             // Transaction Details List
-            _buildDetailRow('Transaction ID', '7236 1121 2830'),
-            _buildDetailRow('Date', '08:16    18 May 2024'),
-            _buildDetailRow('Type of Transactions', 'Top up e-money'),
-            _buildDetailRow('Nominal', '\$180'),
-            _buildDetailRow('Admin', '\$0.5'),
-            _buildDetailRow("Recipient's number", '+62 813 8164 3328'),
-            _buildDetailRow('Status', 'Success', isSuccess: true),
+            _buildDetailRow('Transaction ID', data['external_id']),
+            _buildDetailRow(
+                'Date',
+                DateTime.parse(data['expiration_date'])
+                    .toLocal()
+                    .toString()), // Mengubah format tanggal
+            _buildDetailRow('Nominal', 'IDR ${data['expected_amount']}'),
+            _buildDetailRow(
+                'Admin', 'IDR 0'), // Jika ada biaya admin, sesuaikan di sini
+            _buildDetailRow("Recipient's number", data['account_number']),
+            _buildDetailRow('Status', data['status'],
+                isSuccess: data['status'] == 'INACTIVE'), // Menyesuaikan status
             const SizedBox(height: 30),
             // Total
             Container(
@@ -98,7 +105,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '\$180.05',
+                    'IDR 10000', // Sesuaikan dengan total yang diharapkan
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -156,7 +163,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      value,
+                      value == 'INACTIVE' ? "success" : "failed",
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.green[400],

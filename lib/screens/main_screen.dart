@@ -17,18 +17,17 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  final TransactionService _transaksiService = TransactionService();
+  final TransactionService _transactionService = TransactionService();
   Transaction? _transaksi;
   bool _isLoading = true;
-  String? _error;
 
   final List<Widget> _screens = [
     const MenuScreen(),
     const NewSallesScreen(),
-    SallesHistory(),
+    const SallesHistory(),
     const ProfileScreen(),
   ];
- 
+
   @override
   void initState() {
     super.initState();
@@ -37,21 +36,25 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _loadPendingTransaction() async {
     try {
-      final response = await _transaksiService.getPendingTransaction();
+      final response = await _transactionService.getPendingTransaction();
       setState(() {
         if (response.status && response.data != null) {
           _transaksi = response.data;
-        } else {
-          _error = response.message;
-        }
-        _isLoading = false; // Set false setelah data dimuat
+        } else {}
+        _isLoading = false;
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _error = 'Terjadi kesalahan saat memuat data';
       });
     }
+  }
+
+  Future<void> _onRefresh() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await _loadPendingTransaction();
   }
 
   void _onItemTapped(int index) {
@@ -70,13 +73,16 @@ class _MainScreenState extends State<MainScreen> {
     var splited = _transaksi?.paymentChannel?.split("_");
 
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: _screens,
+        ),
       ),
       floatingActionButton: _transaksi != null
           ? FloatingActionButton.extended(
-              heroTag: null, // Add this line to disable hero animation
+              heroTag: null,
               onPressed: () {
                 Navigator.pushNamed(
                   context,
@@ -107,8 +113,7 @@ class _MainScreenState extends State<MainScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              // ignore: prefer_is_empty
-                              splited!.length >= 1 ? splited[1] : splited[0],
+                              _transaksi!.paymentChannel!,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,

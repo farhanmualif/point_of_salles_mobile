@@ -22,6 +22,11 @@ class PaymentMethods {
         type: 'VIRTUAL_ACCOUNT',
       ),
       XenditPaymentMethod(
+        id: 'QRIS',
+        name: 'QRIS',
+        type: 'VIRTUAL_ACCOUNT',
+      ),
+      XenditPaymentMethod(
         id: 'BNI',
         name: 'Bank BNI',
         type: 'VIRTUAL_ACCOUNT',

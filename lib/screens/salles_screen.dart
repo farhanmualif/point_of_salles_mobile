@@ -152,6 +152,7 @@ class _SallesScreenState extends State<SallesScreen> {
               child: MenuList(onProductSelected: handleProductSelected),
             ),
             floatingActionButton: FloatingActionButton.extended(
+              heroTag: 'salesScreenFAB',
               onPressed: () async {
                 // await postCart(_selectedProducts);
                 if (!context.mounted) return;

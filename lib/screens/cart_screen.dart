@@ -288,33 +288,33 @@ class CartItemWidget extends StatelessWidget {
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _QuantityButton(
-                              icon: Icons.remove,
-                              onPressed: () {
-                                if (detail.qty > 1) {
-                                  onQuantityChanged(detail.qty - 1, index);
-                                }
-                              },
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              child: Text(
-                                '${detail.qty}',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            ),
-                            _QuantityButton(
-                              icon: Icons.add,
-                              onPressed: () {
-                                onQuantityChanged(detail.qty + 1, index);
-                              },
-                            ),
-                          ],
-                        ),
+                        // Row(
+                        //   mainAxisSize: MainAxisSize.min,
+                        //   children: [
+                        //     _QuantityButton(
+                        //       icon: Icons.remove,
+                        //       onPressed: () {
+                        //         if (detail.qty > 1) {
+                        //           onQuantityChanged(detail.qty - 1, index);
+                        //         }
+                        //       },
+                        //     ),
+                        //     Padding(
+                        //       padding:
+                        //           const EdgeInsets.symmetric(horizontal: 8),
+                        //       child: Text(
+                        //         '${detail.qty}',
+                        //         style: const TextStyle(fontSize: 13),
+                        //       ),
+                        //     ),
+                        //     _QuantityButton(
+                        //       icon: Icons.add,
+                        //       onPressed: () {
+                        //         onQuantityChanged(detail.qty + 1, index);
+                        //       },
+                        //     ),
+                        //   ],
+                        // ),
                         IconButton(
                           onPressed: onDeleteItem,
                           icon: const Icon(

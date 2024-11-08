@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:point_of_salles_mobile_app/screens/payment_result_screen.dart';
-import 'package:point_of_salles_mobile_app/screens/payment_screen.dart';
-import 'package:point_of_salles_mobile_app/screens/payment_success.dart';
+import 'package:point_of_salles_mobile_app/models/transaction.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:point_of_salles_mobile_app/services/payment_service.dart';
 import 'package:point_of_salles_mobile_app/models/xendit_payment_method.dart';
@@ -28,7 +26,6 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
   bool _showEWalletOptions = false;
   String? _selectedBank;
   String? _selectedEWallet;
-  String? _paymentType;
 
   bool _isLoading = false;
 
@@ -46,7 +43,6 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                 left: 20,
                 right: 20,
                 top: 20,
-                // Tambahkan padding bottom untuk keyboard
                 bottom: MediaQuery.of(context).viewInsets.bottom + 20,
               ),
               child: Form(
@@ -217,7 +213,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
       children: [
         const SizedBox(height: 20),
         const Text(
-          'Pilih Bank',
+          'Pilih Bank/Metode',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
@@ -228,8 +224,11 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           ),
           child: Column(
             children: [
-              for (var method in PaymentMethods.getAllMethods()
-                  .where((element) => element.type == 'VIRTUAL_ACCOUNT'))
+              // Bank Options
+              for (var method in PaymentMethods.getAllMethods().where(
+                  (element) =>
+                      element.type == 'VIRTUAL_ACCOUNT' &&
+                      element.id != 'QRIS'))
                 RadioListTile(
                   title: Text(method.name),
                   value: method.id,
@@ -241,6 +240,22 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                     });
                   },
                 ),
+
+              // Divider
+              Divider(height: 1, color: Colors.grey[200]),
+
+              // QRIS Option
+              RadioListTile(
+                title: const Text('QRIS'),
+                value: 'QRIS',
+                groupValue: _selectedBank,
+                activeColor: AppColor.primary,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedBank = newValue.toString();
+                  });
+                },
+              ),
             ],
           ),
         ),
@@ -348,9 +363,9 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           _showError('Silakan pilih bank terlebih dahulu');
           return;
         }
-        paymentType = 'VA';
+        paymentType = _selectedBank == 'QRIS' ? 'QRIS' : 'VA';
         codeBank = _selectedBank;
-        debugPrint('Selected VA Bank: $codeBank');
+        debugPrint('Selected Bank: $codeBank');
         break;
 
       case 'EWALLET':
@@ -374,79 +389,46 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         return;
     }
 
-    try {
-      setState(() {
-        _isLoading = true;
-      });
+    setState(() {
+      _isLoading = true;
+    });
 
-      // Debug log
-      debugPrint('Payment Request Details:');
-      debugPrint('Customer Name: ${_customerNameController.text}');
-      debugPrint('Phone Number: ${_phoneNumberController.text}');
-      debugPrint('Payment Method: $_selectedPaymentMethod');
-      debugPrint('Payment Type: $paymentType');
-      debugPrint('Code Bank: $codeBank');
+    final response = await _paymentService.createPayment(
+      customerName: _customerNameController.text,
+      paymentMethod: _selectedPaymentMethod,
+      typePembayaran: paymentType,
+      codeBank: codeBank,
+      phoneNumber: _phoneNumberController.text,
+    );
 
-      final paymentResponse = await _paymentService.createPayment(
-        customerName: _customerNameController.text,
-        paymentMethod: _selectedPaymentMethod,
-        typePembayaran: paymentType,
-        codeBank: codeBank,
-        phoneNumber: _phoneNumberController.text,
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response.status) {
+      // Handle successful payment
+      if (!mounted) return;
+      Navigator.pushNamed(
+        context,
+        "/payment_screen",
       );
 
-      if (!mounted) return;
-
-      if (!paymentResponse.status) {
-        _showError('Gagal melakukan pembayaran: ${paymentResponse.message}');
-        return;
-      }
-
-      if (paymentResponse.data == null) {
-        _showError('Gagal membuat pembayaran: ${paymentResponse.message}');
-        return;
-      }
-
-      // Handle response based on status
-      if (paymentResponse.data!['statusOrder'] == "PAID") {
-        Navigator.of(context).pushReplacementNamed('/payment_success',
-            arguments: paymentResponse.data);
-      } else {
-        Navigator.of(context).pushReplacementNamed('/payment_screen');
-      }
-    } catch (e) {
-      _showError('Error: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      _showSuccess('Pembayaran berhasil!');
+    } else {
+      _showError(response.message);
     }
   }
 
   void _showError(String message) {
-    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message)),
     );
   }
 
-  String _getSelectedPaymentCode() {
-    switch (_selectedPaymentMethod) {
-      case 'TRANSFER':
-        return _selectedBank ?? '';
-      case 'EWALLET':
-        return _selectedEWallet ?? '';
-      case 'CASH':
-        return 'CASH';
-      default:
-        return '';
-    }
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
   }
 
   @override
