@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:point_of_salles_mobile_app/screens/products_screen.dart';
+import 'package:point_of_salles_mobile_app/screens/stock_produk_screen.dart';
 import 'package:point_of_salles_mobile_app/services/product_service.dart';
 import 'package:point_of_salles_mobile_app/services/transaction_service.dart';
 
@@ -132,15 +134,22 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
             const SizedBox(height: 5),
-            SizedBox(
-              height: 200,
-              width: MediaQuery.of(context).size.width * 0.9,
-              child: _buildDashboardCard(
-                icon: Icons.attach_money_sharp,
-                iconColor: Colors.orange,
-                title: 'Total Stok Produk',
-                value: totalStockProduct.toString(), // Display countProduct
-                valueColor: Colors.orange,
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const StockProductScreen(),
+                ));
+              },
+              child: SizedBox(
+                height: 200,
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: _buildDashboardCard(
+                  icon: Icons.attach_money_sharp,
+                  iconColor: Colors.orange,
+                  title: 'Total Stok Produk',
+                  value: totalStockProduct.toString(), // Display countProduct
+                  valueColor: Colors.orange,
+                ),
               ),
             ),
           ],

@@ -24,12 +24,14 @@ class _AddProductFormState extends State<AddProductForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _namaProdukController = TextEditingController();
   final TextEditingController _hargaController = TextEditingController();
+  final TextEditingController _qtyController = TextEditingController();
   final ProductService _productService = ProductService();
 
   @override
   void dispose() {
     _namaProdukController.dispose();
     _hargaController.dispose();
+    _qtyController.dispose();
     super.dispose();
   }
 
@@ -86,11 +88,11 @@ class _AddProductFormState extends State<AddProductForm> {
       File? imageFile = image != null ? File(image!.path) : null;
 
       final response = await _productService.createProduct(
-        namaProduk: _namaProdukController.text,
-        kategori: kategori,
-        harga: harga,
-        foto: imageFile,
-      );
+          namaProduk: _namaProdukController.text,
+          kategori: kategori,
+          harga: harga,
+          foto: imageFile,
+          qty: int.parse(_qtyController.text));
 
       setState(() {
         isLoading = false;
@@ -218,6 +220,33 @@ class _AddProductFormState extends State<AddProductForm> {
                     }
                     if (!RegExp(r'^\d+$').hasMatch(value)) {
                       return 'Harga harus berupa angka';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Tambahkan Form Field untuk Kuantitas
+                const Text('Kuantitas*', style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 4),
+                TextFormField(
+                  controller: _qtyController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    errorStyle: const TextStyle(color: Colors.red),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Kuantitas harus diisi';
+                    }
+                    if (!RegExp(r'^\d+$').hasMatch(value)) {
+                      return 'Kuantitas harus berupa angka';
                     }
                     return null;
                   },

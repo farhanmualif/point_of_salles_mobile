@@ -7,6 +7,7 @@ import 'package:point_of_salles_mobile_app/screens/main_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/payment_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/payment_success.dart';
 import 'package:point_of_salles_mobile_app/screens/splash_screen.dart';
+import 'package:point_of_salles_mobile_app/screens/stock_produk_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/update_profile.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
         "/cart_screen": (context) => const CartScreen(),
         "/payment_screen": (context) => const PaymentScreen(),
         "/add_product_form": (context) => const AddProductForm(),
+        "/stock_product_screen": (context) => const StockProductScreen(),
       },
       onGenerateRoute: (settings) {
         switch (settings.name) {

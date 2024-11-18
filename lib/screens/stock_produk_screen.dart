@@ -2,23 +2,21 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/product_model.dart';
-import 'package:point_of_salles_mobile_app/screens/add_product_form.dart';
-import 'package:point_of_salles_mobile_app/screens/produk_detail_screen.dart';
+import 'package:point_of_salles_mobile_app/screens/form_add_stock.dart';
 import 'package:point_of_salles_mobile_app/services/product_service.dart';
 import 'package:point_of_salles_mobile_app/services/secure_storage_service.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({super.key});
+class StockProductScreen extends StatefulWidget {
+  const StockProductScreen({super.key});
 
   @override
-  State<ProductsScreen> createState() => _ProductsScreenState();
+  State<StockProductScreen> createState() => _StockProductScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen> {
+class _StockProductScreenState extends State<StockProductScreen> {
   bool isLoading = false;
-  String? _aksesName;
   String? _akses;
 
   List<Product> filteredMenuItems = [];
@@ -74,7 +72,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
       final userDataJson = await SecureStorageService.getUserData();
       if (userDataJson != null) {
         final userData = json.decode(userDataJson);
-        _aksesName = userData['aksesName'];
         _akses = userData['akses'];
       }
     } catch (e) {
@@ -105,31 +102,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
               elevation: 0,
               centerTitle: true,
               title: const Text(
-                'List Produk',
+                'List Stock Produk',
                 style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 20),
               ),
-              actions: [
-                _akses == '1' || _akses == '2'
-                    ? GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const AddProductForm()));
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 20),
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                            color: Colors.grey[200],
-                          ),
-                          child: const Icon(Icons.add),
-                        ),
-                      )
-                    : const Text(""),
-              ],
             ),
             body: Container(
               color: const Color(0xfff6f6f6),
@@ -186,14 +164,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
             const SizedBox(width: 16),
             Expanded(child: buildProductInfo(item)),
             _akses == '1' || _akses == '2'
-                ? IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            ProductDetailScreen(productId: item.id),
-                      ));
-                    },
+                ? Column(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                FormAddStock(product: item),
+                          ));
+                        },
+                      ),
+                      const Text("Tambah Stok", style: TextStyle(fontSize: 10))
+                    ],
                   )
                 : const Text(""),
           ],
@@ -220,7 +203,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
         Text('Rp ${item.hargaProduk.toStringAsFixed(0)}',
             style: const TextStyle(
                 color: AppColor.primary, fontWeight: FontWeight.bold)),
-       
+        const SizedBox(height: 4),
+        Text('Stock: ${item.stok}',
+            style: const TextStyle(color: Colors.grey, fontSize: 12)),
       ],
     );
   }

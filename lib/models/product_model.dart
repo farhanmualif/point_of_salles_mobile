@@ -9,6 +9,7 @@ class Product {
   final String mitraId;
   int count;
   final int stok; // New field for stock quantity
+  String statusStok;
 
   Product({
     required this.id,
@@ -21,6 +22,7 @@ class Product {
     this.count = 0,
     required this.mitraId,
     this.stok = 0, // Default stock quantity
+    this.statusStok = "", // Default stock quantity
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,8 @@ class Product {
       hargaProduk: json['hargaProduk'],
       fotoProduk: json['fotoProduk'],
       mitraId: json['mitraId'],
+      statusStok:
+          json['stok_produk'] != null ? json['stok_produk']['status'] : "",
       stok: json['stok_produk'] != null
           ? json['stok_produk']['qty']
           : 0, // Extract stock quantity

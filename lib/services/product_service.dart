@@ -53,6 +53,7 @@ class ProductService {
     required String namaProduk,
     required String kategori,
     required int harga,
+    required int qty,
     File? foto,
   }) async {
     try {
@@ -80,6 +81,7 @@ class ProductService {
       request.fields['namaProduk'] = namaProduk;
       request.fields['kategori'] = kategori;
       request.fields['harga'] = harga.toString();
+      request.fields['stok'] = qty.toString(); // Tambahkan qty
 
       // Tambahkan foto jika ada
       if (foto != null) {
@@ -96,7 +98,6 @@ class ProductService {
         return BaseResponse<Product>(
           status: decodedResponse['status'],
           message: decodedResponse['message'],
-          data: Product.fromJson(decodedResponse['data']),
         );
       } else {
         return BaseResponse<Product>(
@@ -175,6 +176,48 @@ class ProductService {
       }
     } catch (e) {
       return BaseResponse<Product>(
+        status: false,
+        message: 'Terjadi kesalahan: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<BaseResponse<dynamic>> addProductStock({
+    required String productId,
+    required int qty,
+  }) async {
+    try {
+      String? token = await SecureStorageService.getToken();
+      final response = await http.put(
+        Uri.parse("${baseUrl!}/api/produk/stok/add"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: json.encode({
+          "produkId": productId,
+          "qty": qty,
+        }),
+      );
+
+      print(response.body);
+      final decodedResponse = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return BaseResponse<dynamic>(
+          status: decodedResponse['status'],
+          message: decodedResponse['message'],
+          data: decodedResponse['data'],
+        );
+      } else {
+        return BaseResponse<dynamic>(
+          status: decodedResponse['status'],
+          message: decodedResponse['message'] ?? 'Gagal menambah stok produk',
+        );
+      }
+    } catch (e) {
+      return BaseResponse<dynamic>(
         status: false,
         message: 'Terjadi kesalahan: ${e.toString()}',
       );
