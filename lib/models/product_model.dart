@@ -3,7 +3,7 @@ class Product {
   final String kategori;
   final String namaProduk;
   final String slugProduk;
-  final String status;
+  String status;
   final int hargaProduk;
   final String? fotoProduk;
   final String mitraId;

@@ -31,6 +31,8 @@ class AuthService {
             'nama': loginResponse.data!.nama,
             'username': loginResponse.data!.username,
             'email': loginResponse.data!.email,
+            'akses': loginResponse.data!.akses,
+            'aksesName': loginResponse.data!.aksesName,
           }),
         );
       }
@@ -79,6 +81,54 @@ class AuthService {
       return false;
     } catch (e) {
       return false;
+    }
+  }
+
+  Future<BaseResponse> logout() async {
+    try {
+      String? token = await SecureStorageService.getToken();
+
+      final response = await http.post(
+        Uri.parse("${baseUrl!}/api/logout"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json"
+        },
+      );
+
+      final responseBody = json.decode(response.body);
+      final logoutResponse = BaseResponse.fromJson(responseBody);
+
+      if (response.statusCode == 200 && logoutResponse.status) {
+        // Hapus token dan data user dari secure storage
+        await SecureStorageService.clearAll();
+      }
+
+      return logoutResponse;
+    } on TimeoutException {
+      return BaseResponse(
+        status: false,
+        message: 'Request timeout. Silakan coba lagi.',
+        errors: {
+          'timeout': ['Koneksi terlalu lama, silakan periksa internet Anda.'],
+        },
+      );
+    } on ApiException catch (e) {
+      return BaseResponse(
+        status: false,
+        message: e.message,
+        errors: {
+          'api': [e.message],
+        },
+      );
+    } catch (e) {
+      return BaseResponse(
+        status: false,
+        message: 'Terjadi kesalahan saat logout',
+        errors: {
+          'unknown': [e.toString()],
+        },
+      );
     }
   }
 }

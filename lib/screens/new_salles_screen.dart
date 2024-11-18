@@ -163,6 +163,7 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
               child: buildMenu(),
             ),
             floatingActionButton: FloatingActionButton.extended(
+              heroTag: UniqueKey(),
               onPressed: () {
                 postCart(selectedProducts).then((response) {
                   Navigator.of(context).pushNamed("/cart_screen");

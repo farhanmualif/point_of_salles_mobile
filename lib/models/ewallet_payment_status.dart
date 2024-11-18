@@ -95,7 +95,39 @@ class EWalletPaymentStatus {
     );
   }
 
-  
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'business_id': businessId,
+      'reference_id': referenceId,
+      'status': status,
+      'currency': currency,
+      'charge_amount': chargeAmount,
+      'capture_amount': captureAmount,
+      'payer_charged_currency': payerChargedCurrency,
+      'payer_charged_amount': payerChargedAmount,
+      'refunded_amount': refundedAmount,
+      'checkout_method': checkoutMethod,
+      'channel_code': channelCode,
+      'channel_properties': channelProperties.toJson(),
+      'actions': actions.toJson(),
+      'is_redirect_required': isRedirectRequired,
+      'callback_url': callbackUrl,
+      'created': created,
+      'updated': updated,
+      'void_status': voidStatus,
+      'voided_at': voidedAt,
+      'capture_now': captureNow,
+      'customer_id': customerId,
+      'customer': customer.toJson(),
+      'payment_method_id': paymentMethodId,
+      'failure_code': failureCode,
+      'basket': basket,
+      'metadata': metadata,
+      'shipping_information': shippingInformation,
+      'payment_detail': paymentDetail.toJson(),
+    };
+  }
 }
 
 class ChannelProperties {
@@ -104,7 +136,7 @@ class ChannelProperties {
 
   ChannelProperties({
     required this.successRedirectUrl,
-     this.failureRedirectUrl,
+    this.failureRedirectUrl,
   });
 
   factory ChannelProperties.fromJson(Map<String, dynamic> json) {

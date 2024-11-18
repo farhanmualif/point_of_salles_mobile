@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'package:point_of_salles_mobile_app/screens/payment_success.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/base_response.dart';
@@ -100,6 +103,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return formatCurrency.format(nominal);
   }
 
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Nomor VA berhasil disalin'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   Widget _buildPaymentStatusInfo() {
     if (_transaksi?.vaPaymentStatus != null) {
       return Column(
@@ -127,7 +140,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Nomor VA'),
-                    Text(_transaksi!.vaPaymentStatus!.accountNumber),
+                    GestureDetector(
+                      onTap: () => _copyToClipboard(
+                          _transaksi!.vaPaymentStatus!.accountNumber),
+                      child: Row(
+                        children: [
+                          Text(_transaksi!.vaPaymentStatus!.accountNumber),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.copy, size: 18),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -270,6 +293,45 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                   ],
                   const SizedBox(height: 24.0),
+                  const SizedBox(height: 24.0),
+                  // jika _transaksi.ewalletPaymentStatus.actions.qrCheckoutString atau _transaksi.ewalletPaymentStatus.actions.mobile_deeplink_checkout_url tidak null maka generate qrCode nya menjadi QR CODE
+                  if (_transaksi?.ewalletPaymentStatus?.actions
+                              .qrCheckoutString !=
+                          null ||
+                      _transaksi?.ewalletPaymentStatus?.actions
+                              .mobileDeeplinkCheckoutUrl !=
+                          null ||
+                      _transaksi?.ewalletPaymentStatus?.actions
+                              .mobileWebCheckoutUrl !=
+                          null) ...[
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Text(
+                        'QR Code Pembayaran',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Center(
+                      child: QrImageView(
+                        data: _transaksi!.ewalletPaymentStatus!.actions
+                                .qrCheckoutString ??
+                            _transaksi!.ewalletPaymentStatus!.actions
+                                .mobileDeeplinkCheckoutUrl ??
+                            _transaksi!.ewalletPaymentStatus!.actions
+                                .mobileWebCheckoutUrl ??
+                            '',
+                        version: QrVersions.auto,
+                        size: 200.0,
+                        gapless: false,
+                      ),
+                    ),
+                    const SizedBox(height: 24.0),
+                  ],
+
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: const Text(

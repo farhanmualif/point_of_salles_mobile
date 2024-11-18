@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:point_of_salles_mobile_app/screens/add_product_form.dart';
 import 'package:point_of_salles_mobile_app/screens/cart_screen.dart';
+import 'package:point_of_salles_mobile_app/screens/edit_product_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/login_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/main_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/payment_screen.dart';
@@ -71,6 +73,7 @@ class MyApp extends StatelessWidget {
         "/splash_screen": (context) => const SplashScreen(),
         "/cart_screen": (context) => const CartScreen(),
         "/payment_screen": (context) => const PaymentScreen(),
+        "/add_product_form": (context) => const AddProductForm(),
       },
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -99,6 +102,17 @@ class MyApp extends StatelessWidget {
         }
       },
       theme: ThemeData(
+        inputDecorationTheme: const InputDecorationTheme(
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: AppColor.primary),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.red, width: 2.0),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.redAccent, width: 2.0),
+          ),
+        ),
         primaryColor: AppColor.primary,
         fontFamily: 'Roboto',
         useMaterial3: true,

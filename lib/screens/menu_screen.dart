@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:point_of_salles_mobile_app/models/transaction.dart';
+import 'package:point_of_salles_mobile_app/screens/products_screen.dart';
 import 'package:point_of_salles_mobile_app/services/product_service.dart';
 import 'package:point_of_salles_mobile_app/services/transaction_service.dart';
 
@@ -107,11 +107,15 @@ class _MenuScreenState extends State<MenuScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: _buildDashboardCard(
-                      icon: Icons.work,
-                      iconColor: Colors.blue,
-                      title: 'Produk',
-                      value: countProduct.toString(), // Display countProduct
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => const ProductsScreen())),
+                      child: _buildDashboardCard(
+                        icon: Icons.work,
+                        iconColor: Colors.blue,
+                        title: 'Produk',
+                        value: countProduct.toString(), // Display countProduct
+                      ),
                     ),
                   ),
                   const SizedBox(width: 5),

@@ -5,21 +5,21 @@ import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // ignore: must_be_immutable
-class MenuList extends StatefulWidget {
+class ProductList extends StatefulWidget {
   final Function(List<Map<String, Product>>) onProductSelected;
   VoidCallback? onCartScreenExit;
 
-  MenuList({
+  ProductList({
     super.key,
     required this.onProductSelected,
     this.onCartScreenExit,
   });
 
   @override
-  State<MenuList> createState() => _MenuListState();
+  State<ProductList> createState() => _ProductListState();
 }
 
-class _MenuListState extends State<MenuList> {
+class _ProductListState extends State<ProductList> {
   final _productService = ProductService();
 
   // Data state
@@ -35,6 +35,7 @@ class _MenuListState extends State<MenuList> {
     super.initState();
     _initializeData();
   }
+  
 
   // Data fetching methods
   Future<void> _initializeData() async {

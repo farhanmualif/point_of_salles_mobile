@@ -61,6 +61,9 @@ class _CartScreenState extends State<CartScreen> {
         _isLoading = true;
       });
       await _cartService.delete();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Hapus Keranjang'), backgroundColor: Colors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -4,7 +4,7 @@ import 'package:point_of_salles_mobile_app/models/cart_model.dart';
 import 'package:point_of_salles_mobile_app/models/product_model.dart';
 import 'package:point_of_salles_mobile_app/services/cart_service.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
-import 'package:point_of_salles_mobile_app/widgets/menu_list.dart';
+import 'package:point_of_salles_mobile_app/widgets/salles_menu_list.dart';
 
 class SallesScreen extends StatefulWidget {
   const SallesScreen({super.key});
@@ -149,10 +149,10 @@ class _SallesScreenState extends State<SallesScreen> {
             ),
             body: Container(
               color: const Color(0xfff6f6f6),
-              child: MenuList(onProductSelected: handleProductSelected),
+              child: SallesMenuList(onProductSelected: handleProductSelected),
             ),
             floatingActionButton: FloatingActionButton.extended(
-              heroTag: 'salesScreenFAB',
+              heroTag: UniqueKey(),
               onPressed: () async {
                 // await postCart(_selectedProducts);
                 if (!context.mounted) return;

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:point_of_salles_mobile_app/models/transaction.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:point_of_salles_mobile_app/services/payment_service.dart';
 import 'package:point_of_salles_mobile_app/models/xendit_payment_method.dart';
@@ -393,6 +392,9 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
       _isLoading = true;
     });
 
+    print("selected payment method $_selectedPaymentMethod");
+    print("selected payment type $paymentType");
+
     final response = await _paymentService.createPayment(
       customerName: _customerNameController.text,
       paymentMethod: _selectedPaymentMethod,
@@ -405,15 +407,23 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
       _isLoading = false;
     });
 
-    if (response.status) {
+    if (response.status && response.data?['statusOrder'] == 'PAID') {
       // Handle successful payment
       if (!mounted) return;
-      Navigator.pushNamed(
+
+      Navigator.pushReplacementNamed(context, "/payment_success",
+          arguments: response.data);
+
+      _showSuccess('Pembayaran berhasil!');
+    } else if (response.status &&
+        (response.data?['statusOrder'] == null ||
+            response.data?['statusOrder'] == 'UNPAID')) {
+      if (!mounted) return;
+
+      Navigator.pushReplacementNamed(
         context,
         "/payment_screen",
       );
-
-      _showSuccess('Pembayaran berhasil!');
     } else {
       _showError(response.message);
     }

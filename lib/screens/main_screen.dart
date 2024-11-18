@@ -82,7 +82,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       floatingActionButton: _transaksi != null
           ? FloatingActionButton.extended(
-              heroTag: null,
+              heroTag: null, // Menggunakan UniqueKey untuk memastikan keunikan
               onPressed: () {
                 Navigator.pushNamed(
                   context,

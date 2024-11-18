@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/base_response.dart';
 import 'package:point_of_salles_mobile_app/models/profile.dart';
+import 'package:point_of_salles_mobile_app/services/auth_service.dart';
 import 'package:point_of_salles_mobile_app/services/profile_service.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -14,8 +15,9 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final KaryawanService _karyawanService = KaryawanService();
+  final AuthService _authService = AuthService(); // Tambahkan ini
   Karyawan? _profile;
-  bool _isLoading = true;
+  bool _isLoading = false;
   String _error = '';
 
   final String? baseUrl = dotenv.env['API_URL'];
@@ -36,12 +38,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (response.status) {
         setState(() {
           _profile = response.data;
-          _isLoading = false;
         });
       } else {
         setState(() {
           _error = response.message;
-          _isLoading = false;
         });
       }
     } catch (e) {
@@ -49,13 +49,97 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _error = 'Terjadi kesalahan saat memuat profil';
         _isLoading = false;
       });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    // Tampilkan dialog konfirmasi
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Logout'),
+        content: const Text('Apakah Anda yakin ingin keluar?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child:
+                const Text('Ya, Keluar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true) {
+      try {
+        setState(() {
+          _isLoading = true;
+        });
+        // Tampilkan loading indicator
+        showDialog(
+          // ignore: use_build_context_synchronously
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        final response = await _authService.logout();
+
+        // Tutup loading indicator
+        if (!mounted) return;
+        Navigator.of(context).pop();
+
+        if (response.status) {
+          // Jika logout berhasil, navigate ke splash screen
+          if (!mounted) return;
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/splash_screen', // Sesuaikan dengan route login Anda
+            (route) => false,
+          );
+        } else {
+          // Jika gagal, tampilkan pesan error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        // Tutup loading indicator
+        if (!mounted) return;
+        Navigator.of(context).pop();
+
+        // Tampilkan pesan error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Terjadi kesalahan saat logout'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: Center(
+              child: CircularProgressIndicator(color: AppColor.primary)));
     }
 
     if (_error.isNotEmpty) {
@@ -178,9 +262,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildLogoutButton() {
-    return const ListTile(
-      leading: Icon(Icons.exit_to_app, color: Colors.red),
-      title: Text('Logout', style: TextStyle(color: Colors.red)),
+    return ListTile(
+      leading: const Icon(Icons.exit_to_app, color: Colors.red),
+      title: const Text('Logout', style: TextStyle(color: Colors.red)),
+      onTap: _handleLogout, // Tambahkan handler
     );
   }
 }
