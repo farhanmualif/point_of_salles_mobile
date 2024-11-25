@@ -1,0 +1,16 @@
+workflows:
+  ios-workflow:
+    scripts:
+      - name: Build IPA
+        script: |
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/ios/Runner.xcarchive \
+            archive
+          xcodebuild -exportArchive \
+            -archivePath build/ios/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath build/ios/ipa
+    artifacts:
+      - build/ios/ipa/*.ipa
