@@ -24,6 +24,18 @@ class AuthService {
       final loginResponse =
           BaseResponse.fromJson(responseBody, UserData.fromJson);
 
+      if (loginResponse.data != null && loginResponse.data!.akses == "1") {
+        return BaseResponse(
+          status: false,
+          message: 'Akses ditolak',
+          errors: {
+            'access': [
+              'Anda tidak memiliki hak akses untuk menggunakan aplikasi ini'
+            ],
+          },
+        );
+      }
+
       if (response.statusCode == 200 && loginResponse.data != null) {
         await SecureStorageService.saveToken(loginResponse.data!.token);
         await SecureStorageService.saveUserData(
@@ -130,5 +142,14 @@ class AuthService {
         },
       );
     }
+  }
+
+  Future<int> getUserAccess() async {
+    final userData = await SecureStorageService.getUserData();
+    if (userData != null) {
+      final data = json.decode(userData);
+      return int.parse(data['akses'] ?? '3');
+    }
+    return 3; // default ke user biasa
   }
 }

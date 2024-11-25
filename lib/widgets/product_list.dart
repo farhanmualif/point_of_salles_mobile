@@ -35,7 +35,6 @@ class _ProductListState extends State<ProductList> {
     super.initState();
     _initializeData();
   }
-  
 
   // Data fetching methods
   Future<void> _initializeData() async {

@@ -64,7 +64,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Point of Sales',
       debugShowCheckedModeBanner: false,
       initialRoute: "/",
       routes: {
@@ -85,7 +85,7 @@ class MyApp extends StatelessWidget {
               builder: (context) => PaymentSuccessScreen(data: data),
             );
           case '/edit_profile_screen':
-            final args = settings.arguments as Map<String, String>;
+            final args = settings.arguments as Map<String, dynamic>;
             return MaterialPageRoute(
               builder: (context) => EditProfilePage(
                 username: args['username'] ?? '',
@@ -104,23 +104,97 @@ class MyApp extends StatelessWidget {
         }
       },
       theme: ThemeData(
-        inputDecorationTheme: const InputDecorationTheme(
+        primaryColor: AppColor.primary,
+        primarySwatch: MaterialColor(AppColor.primary.value, {
+          50: AppColor.primary.withOpacity(0.1),
+          100: AppColor.primary.withOpacity(0.2),
+          200: AppColor.primary.withOpacity(0.3),
+          300: AppColor.primary.withOpacity(0.4),
+          400: AppColor.primary.withOpacity(0.5),
+          500: AppColor.primary.withOpacity(0.6),
+          600: AppColor.primary.withOpacity(0.7),
+          700: AppColor.primary.withOpacity(0.8),
+          800: AppColor.primary.withOpacity(0.9),
+          900: AppColor.primary,
+        }),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColor.primary,
+          primary: AppColor.primary,
+          secondary: AppColor.primary,
+          surface: Colors.white,
+          background: Colors.white,
+          error: Colors.red,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.grey[100],
+          prefixIconColor: AppColor.primary,
+          suffixIconColor: Colors.grey[600],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Colors.grey[300]!,
+              width: 1,
+            ),
+          ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: AppColor.primary),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: AppColor.primary,
+              width: 1.5,
+            ),
           ),
           errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.red, width: 2.0),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Colors.red,
+              width: 1,
+            ),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.redAccent, width: 2.0),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 1.5,
+            ),
+          ),
+          labelStyle: TextStyle(color: Colors.grey[700]),
+          hintStyle: TextStyle(color: Colors.grey[400]),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColor.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 12,
+            ),
           ),
         ),
-        primaryColor: AppColor.primary,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: IconThemeData(
+            color: Colors.black87,
+            size: 24,
+          ),
+          titleTextStyle: TextStyle(
+            color: Colors.black87,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         fontFamily: 'Roboto',
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.white,
-        ).copyWith(error: Colors.redAccent),
       ),
     );
   }

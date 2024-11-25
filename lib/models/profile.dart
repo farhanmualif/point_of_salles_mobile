@@ -74,3 +74,44 @@ class Karyawan {
     );
   }
 }
+
+class Mitra {
+  final String id;
+  final String userId;
+  final String namaMitra;
+  final String nomorHp;
+  final String validasiMitraId;
+  final String? fotoMitra;
+  final String statusMitra;
+  final String? createdAt;
+  final String? updatedAt;
+  final User user;
+
+  Mitra({
+    required this.id,
+    required this.userId,
+    required this.namaMitra,
+    required this.nomorHp,
+    required this.validasiMitraId,
+    this.fotoMitra,
+    required this.statusMitra,
+    this.createdAt,
+    this.updatedAt,
+    required this.user,
+  });
+
+  factory Mitra.fromJson(Map<String, dynamic> json) {
+    return Mitra(
+      id: json['id'],
+      userId: json['userId'],
+      namaMitra: json['namaMitra'],
+      nomorHp: json['nomorHp'],
+      validasiMitraId: json['validasiMitraId'],
+      fotoMitra: json['fotoMitra'],
+      statusMitra: json['statusMitra'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+      user: User.fromJson(json['user']),
+    );
+  }
+}

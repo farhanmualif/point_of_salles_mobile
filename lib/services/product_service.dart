@@ -280,4 +280,40 @@ class ProductService {
       );
     }
   }
+
+  Future<BaseResponse<Product>> updateProductStockStatus({
+    required String productId,
+  }) async {
+    try {
+      String? token = await SecureStorageService.getToken();
+      final response = await http.put(
+        Uri.parse("${baseUrl!}/api/produk/$productId/stok/status"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer $token"
+        },
+      );
+
+      final decodedResponse = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return BaseResponse<Product>(
+          status: decodedResponse['status'],
+          message: decodedResponse['message'],
+        );
+      } else {
+        return BaseResponse<Product>(
+          status: false,
+          message:
+              decodedResponse['message'] ?? 'Gagal mengubah status stok produk',
+        );
+      }
+    } catch (e) {
+      return BaseResponse<Product>(
+        status: false,
+        message: 'Terjadi kesalahan: ${e.toString()}',
+      );
+    }
+  }
 }

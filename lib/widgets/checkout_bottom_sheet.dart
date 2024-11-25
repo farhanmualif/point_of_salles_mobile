@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:point_of_salles_mobile_app/services/payment_service.dart';
 import 'package:point_of_salles_mobile_app/models/xendit_payment_method.dart';
+import 'package:point_of_salles_mobile_app/utils/currency_formatter.dart';
 
 class CheckoutBottomSheet extends StatefulWidget {
   final double totalPayment;
@@ -314,7 +315,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
           Text(
-            'IDR ${widget.totalPayment}',
+            CurrencyFormatter.formatRupiah(widget.totalPayment),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

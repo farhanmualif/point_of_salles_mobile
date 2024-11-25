@@ -94,48 +94,48 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? const Scaffold(
-            body: Center(
-                child: CircularProgressIndicator(color: AppColor.primary)),
-          )
-        : Scaffold(
-            appBar: AppBar(
-              backgroundColor: const Color(0xFFF9F9F9),
-              elevation: 0,
-              centerTitle: true,
-              title: const Text(
-                'List Produk',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF9F9F9),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        centerTitle: true,
+        title: const Text(
+          'Daftar Produk',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+        actions: [
+          if (_akses == '1' || _akses == '2')
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColor.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.add, color: AppColor.primary),
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (context) => const AddProductForm()),
+                  );
+                },
               ),
-              actions: [
-                _akses == '1' || _akses == '2'
-                    ? GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const AddProductForm()));
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 20),
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                            color: Colors.grey[200],
-                          ),
-                          child: const Icon(Icons.add),
-                        ),
-                      )
-                    : const Text(""),
-              ],
             ),
-            body: Container(
-              color: const Color(0xfff6f6f6),
-              child: buildMenu(),
-            ),
-          );
+        ],
+      ),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColor.primary))
+          : buildMenu(),
+    );
   }
 
   Widget buildMenu() {
@@ -166,47 +166,55 @@ class _ProductsScreenState extends State<ProductsScreen> {
         : '${dotenv.env['API_URL']}/produk_thumbnail/thumbnail_1.jpg';
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: Colors.grey[300]!, width: 0.5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2))
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            buildProductImage(imageUrl),
-            const SizedBox(width: 16),
-            Expanded(child: buildProductInfo(item)),
-            _akses == '1' || _akses == '2'
-                ? IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            ProductDetailScreen(productId: item.id),
-                      ));
-                    },
-                  )
-                : const Text(""),
-          ],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => ProductDetailScreen(productId: item.id),
+            ));
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                buildProductImage(imageUrl),
+                const SizedBox(width: 16),
+                Expanded(child: buildProductInfo(item)),
+                if (_akses == '1' || _akses == '2') _buildEditButton(item),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget buildProductImage(String imageUrl) {
-    return CircleAvatar(
-      radius: 30,
-      backgroundImage: NetworkImage(imageUrl),
-      onBackgroundImageError: (_, __) {},
+    return Container(
+      width: 70,
+      height: 70,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColor.primary.withOpacity(0.2), width: 2),
+        image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.cover,
+        ),
+      ),
     );
   }
 
@@ -214,14 +222,56 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(item.namaProduk,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          item.namaProduk,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Rp ${item.hargaProduk.toStringAsFixed(0)}',
+          style: const TextStyle(
+            color: AppColor.primary,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text('Rp ${item.hargaProduk.toStringAsFixed(0)}',
-            style: const TextStyle(
-                color: AppColor.primary, fontWeight: FontWeight.bold)),
-       
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColor.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            'Stok: ${item.stok}',
+            style: TextStyle(
+              color: AppColor.primary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildEditButton(Product item) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColor.primary.withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(Icons.edit, color: AppColor.primary, size: 20),
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(productId: item.id),
+          ));
+        },
+      ),
     );
   }
 
@@ -237,18 +287,28 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: TextField(
         controller: searchbarController,
         decoration: InputDecoration(
-          hintText: 'Search menu...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: BorderSide(color: Colors.grey[300]!, width: 0.5)),
+          hintText: 'Cari produk...',
+          hintStyle: TextStyle(color: Colors.grey[400]),
+          prefixIcon: Icon(Icons.search, color: AppColor.primary),
+          border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
         onChanged: searchMenu,
       ),

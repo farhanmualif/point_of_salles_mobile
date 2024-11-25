@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:point_of_salles_mobile_app/models/transaction.dart';
 import 'package:point_of_salles_mobile_app/screens/menu_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/new_salles_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/profile_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/salles_history.dart';
-import 'package:point_of_salles_mobile_app/services/transaction_service.dart';
+import 'package:point_of_salles_mobile_app/screens/stock_produk_screen.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
+import 'package:point_of_salles_mobile_app/screens/products_screen.dart';
+import 'package:point_of_salles_mobile_app/services/auth_service.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,44 +17,20 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  final TransactionService _transactionService = TransactionService();
-  Transaction? _transaksi;
-  bool _isLoading = true;
-
-  final List<Widget> _screens = [
-    const MenuScreen(),
-    const NewSallesScreen(),
-    const SallesHistory(),
-    const ProfileScreen(),
-  ];
+  final AuthService _authService = AuthService();
+  int? userAccess;
 
   @override
   void initState() {
     super.initState();
-    _loadPendingTransaction();
+    _checkUserAccess();
   }
 
-  Future<void> _loadPendingTransaction() async {
-    try {
-      final response = await _transactionService.getPendingTransaction();
-      setState(() {
-        if (response.status && response.data != null) {
-          _transaksi = response.data;
-        } else {}
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _onRefresh() async {
+  Future<void> _checkUserAccess() async {
+    final access = await _authService.getUserAccess();
     setState(() {
-      _isLoading = true;
+      userAccess = access;
     });
-    await _loadPendingTransaction();
   }
 
   void _onItemTapped(int index) {
@@ -65,91 +41,27 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-    var splited = _transaksi?.paymentChannel?.split("_");
+    // Definisikan screens berdasarkan user access
+    final List<Widget> screens = userAccess == 2
+        ? [
+            const MenuScreen(),
+            const ProductsScreen(),
+            const StockProductScreen(),
+            const ProfileScreen(),
+          ]
+        : [
+            const MenuScreen(),
+            const NewSallesScreen(),
+            const SallesHistory(),
+            const ProfileScreen(),
+          ];
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: _screens,
-        ),
-      ),
-      floatingActionButton: _transaksi != null
-          ? FloatingActionButton.extended(
-              heroTag: null, // Menggunakan UniqueKey untuk memastikan keunikan
-              onPressed: () {
-                Navigator.pushNamed(
-                  context,
-                  "/payment_screen",
-                  arguments: _transaksi,
-                );
-              },
-              label: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Row(
-                        children: [
-                          const Text(
-                            "Menunggu Pembayaran",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              _transaksi!.paymentChannel!,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Bayar',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              backgroundColor: AppColor.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(100),
-              ),
-            )
-          : null,
+      body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+        userAccess: userAccess,
       ),
     );
   }
@@ -158,47 +70,76 @@ class _MainScreenState extends State<MainScreen> {
 class BottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
+  final int? userAccess;
 
   const BottomNavBar({
     super.key,
     required this.selectedIndex,
     required this.onItemTapped,
+    required this.userAccess,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      items: [
-        _buildBottomNavigationBarItem('assets/icons/home.svg', 'Home', 0),
-        _buildBottomNavigationBarItem(
-            'assets/icons/shopping-bag.svg', 'Penjualan', 1),
-        _buildBottomNavigationBarItem('assets/icons/repeat.svg', 'History', 2),
-        _buildBottomNavigationBarItem(
-            'assets/icons/user.svg', 'Profile saya', 3),
-      ],
-      currentIndex: selectedIndex,
-      selectedItemColor: AppColor.primary,
-      unselectedItemColor: Colors.grey,
-      onTap: onItemTapped,
-    );
-  }
-
-  BottomNavigationBarItem _buildBottomNavigationBarItem(
-      String iconPath, String label, int index) {
-    return BottomNavigationBarItem(
-      icon: ColorFiltered(
-        colorFilter: ColorFilter.mode(
-          selectedIndex == index ? AppColor.primary : Colors.grey,
-          BlendMode.srcIn,
-        ),
-        child: SvgPicture.asset(
-          iconPath,
-          height: 24,
-          width: 24,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: BottomNavigationBar(
+            currentIndex: selectedIndex,
+            onTap: onItemTapped,
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            selectedItemColor: AppColor.primary,
+            unselectedItemColor: Colors.grey[400],
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.shopping_cart_outlined),
+                activeIcon: const Icon(Icons.shopping_cart),
+                label: userAccess == 2
+                    ? 'Produk'
+                    : 'Jual',
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.history_outlined),
+                activeIcon: const Icon(Icons.history),
+                label: userAccess == 2
+                    ? 'Stok'
+                    : 'Riwayat',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profil',
+              ),
+            ],
+          ),
         ),
       ),
-      label: label,
     );
   }
 }

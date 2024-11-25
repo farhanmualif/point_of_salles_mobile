@@ -4,6 +4,7 @@ import 'package:point_of_salles_mobile_app/services/cart_service.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:point_of_salles_mobile_app/widgets/checkout_bottom_sheet.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:point_of_salles_mobile_app/utils/currency_formatter.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -86,12 +87,13 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon:
+              const Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
           onPressed: () async {
             await deleteCart();
             if (!context.mounted) return;
@@ -100,102 +102,160 @@ class _CartScreenState extends State<CartScreen> {
         ),
         centerTitle: true,
         title: const Text(
-          'My Cart',
+          'Keranjang',
           style: TextStyle(
-              color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+            color: Colors.black87,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColor.primary))
-          : Column(
+          : _cartItems.isEmpty
+              ? _buildEmptyCart()
+              : Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _cartItems.length,
+                        itemBuilder: (context, index) {
+                          return CartItemWidget(
+                            item: _cartItems[index],
+                            onQuantityChanged: (newQuantity, detailIndex) {
+                              setState(() {
+                                _cartItems[index].details[detailIndex].qty =
+                                    newQuantity;
+                                _cartItems[index].totalHarga =
+                                    _cartItems[index].details.fold(
+                                          0,
+                                          (sum, detail) =>
+                                              sum + (detail.harga * detail.qty),
+                                        );
+                              });
+                            },
+                            onDeleteItem: () {
+                              setState(() {
+                                _cartItems.removeAt(index);
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    _buildCheckoutSection(),
+                  ],
+                ),
+    );
+  }
+
+  Widget _buildEmptyCart() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shopping_cart_outlined,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Keranjang Kosong',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Silakan tambahkan produk ke keranjang',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckoutSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Row(
               children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: _cartItems.length,
-                    itemBuilder: (context, index) {
-                      return CartItemWidget(
-                        item: _cartItems[index],
-                        onQuantityChanged: (newQuantity, detailIndex) {
-                          setState(() {
-                            // Update quantity for specific detail
-                            _cartItems[index].details[detailIndex].qty =
-                                newQuantity;
-                            // Recalculate total for the cart item
-                            _cartItems[index].totalHarga = _cartItems[index]
-                                .details
-                                .fold(
-                                    0,
-                                    (sum, detail) =>
-                                        sum + (detail.harga * detail.qty));
-                          });
-                        },
-                        onDeleteItem: () {
-                          setState(() {
-                            _cartItems.removeAt(index);
-                          });
-                        },
-                      );
-                    },
+                const Text(
+                  'Total Pembayaran',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black87,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.white,
-                  child: SafeArea(
-                    child: Row(
-                      children: [
-                        const Text(
-                          'Total',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          'IDR ${total.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColor.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) =>
-                                    CheckoutBottomSheet(totalPayment: total),
-                              );
-                            },
-                            child: const Text(
-                              'Checkout',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                const Spacer(),
+                Text(
+                  CurrencyFormatter.formatRupiah(total),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.primary,
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) =>
+                        CheckoutBottomSheet(totalPayment: total),
+                  );
+                },
+                child: const Text(
+                  'Checkout',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -216,16 +276,15 @@ class CartItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -237,16 +296,19 @@ class CartItemWidget extends StatelessWidget {
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 70,
-                      height: 70,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.grey[200]!,
+                          width: 1,
+                        ),
                         image: DecorationImage(
                           image: detail.produk.fotoProduk != null
                               ? NetworkImage(
@@ -257,7 +319,7 @@ class CartItemWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,24 +327,26 @@ class CartItemWidget extends StatelessWidget {
                           Text(
                             detail.produk.namaProduk,
                             style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Jml: ${detail.qty}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'IDR ${detail.harga.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 13,
-                            ),
-                          ),
-                          Text(
-                            'IDR ${(detail.harga * detail.qty).toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                            CurrencyFormatter.formatRupiah(
+                                (detail.harga * detail.qty).toDouble()),
+                            style: TextStyle(
                               fontSize: 14,
+                              color: Colors.grey[600],
                             ),
                           ),
                         ],
@@ -291,33 +355,6 @@ class CartItemWidget extends StatelessWidget {
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Row(
-                        //   mainAxisSize: MainAxisSize.min,
-                        //   children: [
-                        //     _QuantityButton(
-                        //       icon: Icons.remove,
-                        //       onPressed: () {
-                        //         if (detail.qty > 1) {
-                        //           onQuantityChanged(detail.qty - 1, index);
-                        //         }
-                        //       },
-                        //     ),
-                        //     Padding(
-                        //       padding:
-                        //           const EdgeInsets.symmetric(horizontal: 8),
-                        //       child: Text(
-                        //         '${detail.qty}',
-                        //         style: const TextStyle(fontSize: 13),
-                        //       ),
-                        //     ),
-                        //     _QuantityButton(
-                        //       icon: Icons.add,
-                        //       onPressed: () {
-                        //         onQuantityChanged(detail.qty + 1, index);
-                        //       },
-                        //     ),
-                        //   ],
-                        // ),
                         IconButton(
                           onPressed: onDeleteItem,
                           icon: const Icon(

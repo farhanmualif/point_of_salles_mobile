@@ -53,6 +53,7 @@ class _FormAddStockState extends State<FormAddStock> {
 
     if (response.status) {
       // Berhasil menambah stok
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(response.message ?? 'Stok berhasil ditambahkan'),

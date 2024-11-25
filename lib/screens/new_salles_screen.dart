@@ -6,6 +6,7 @@ import 'package:point_of_salles_mobile_app/services/cart_service.dart';
 import 'package:point_of_salles_mobile_app/services/product_service.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:point_of_salles_mobile_app/utils/currency_formatter.dart';
 
 class NewSallesScreen extends StatefulWidget {
   const NewSallesScreen({super.key});
@@ -176,7 +177,7 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
                     Expanded(
                       flex: 3,
                       child: Text(
-                        'Rp ${NumberFormat('#,##0', 'id_ID').format(calculateTotalPrice())}',
+                        CurrencyFormatter.formatRupiah(calculateTotalPrice()),
                         style: const TextStyle(color: Colors.white),
                       ),
                     ),
@@ -226,38 +227,73 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
         ? '${dotenv.env['API_URL']}/produk_thumbnail/${item.fotoProduk}'
         : '${dotenv.env['API_URL']}/produk_thumbnail/thumbnail_1.jpg';
 
+    final bool isDisabled = item.status == "0" || item.statusStok == "0";
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey[300]!, width: 0.5),
-        borderRadius: BorderRadius.circular(8),
+        color: isDisabled ? Colors.grey[100] : Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2))
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            buildProductImage(imageUrl),
-            const SizedBox(width: 16),
-            Expanded(child: buildProductInfo(item)),
-            buildQuantityControls(item),
-          ],
+      child: Opacity(
+        opacity: isDisabled ? 0.7 : 1.0,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              buildProductImage(imageUrl),
+              const SizedBox(width: 16),
+              Expanded(child: buildProductInfo(item)),
+              if (!isDisabled) buildQuantityControls(item),
+              if (isDisabled) _buildDisabledStatus(item),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDisabledStatus(Product item) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        item.status == "0"
+            ? 'Tidak Aktif'
+            : item.statusStok == "0"
+                ? "Stok Habis"
+                : "Tidak Tersedia",
+        style: TextStyle(
+          color: Colors.grey[600],
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
   }
 
   Widget buildProductImage(String imageUrl) {
-    return CircleAvatar(
-      radius: 30,
-      backgroundImage: NetworkImage(imageUrl),
-      onBackgroundImageError: (_, __) {},
+    return Container(
+      width: 70,
+      height: 70,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColor.primary.withOpacity(0.2), width: 2),
+        image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.cover,
+        ),
+      ),
     );
   }
 
@@ -265,15 +301,38 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(item.namaProduk,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          item.namaProduk,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          CurrencyFormatter.formatRupiah(item.hargaProduk.toDouble()),
+          style: const TextStyle(
+            color: AppColor.primary,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text('Rp ${item.hargaProduk.toStringAsFixed(0)}',
-            style: const TextStyle(
-                color: AppColor.primary, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text('Stock: ${item.stok}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColor.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            'Stok: ${item.stok}',
+            style: TextStyle(
+              color: AppColor.primary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -281,37 +340,57 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
   Widget buildQuantityControls(Product item) {
     final quantity = getSelectedQuantity(item.id);
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-          border: Border.all(color: AppColor.primary, width: 1),
-          borderRadius: BorderRadius.circular(20)),
+        border:
+            Border.all(color: AppColor.primary.withOpacity(0.3), width: 1.5),
+        borderRadius: BorderRadius.circular(25),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          buildControlButton(
-              Icons.remove, () => updateCartQuantity(item, quantity - 1),
-              enabled: quantity > 0),
+          _buildControlButton(
+            Icons.remove,
+            () => updateCartQuantity(item, quantity - 1),
+            enabled: quantity > 0,
+          ),
           Container(
-              constraints: const BoxConstraints(minWidth: 30),
-              alignment: Alignment.center,
-              child: Text('$quantity',
-                  style: const TextStyle(
-                      color: AppColor.primary, fontWeight: FontWeight.bold))),
-          buildControlButton(
-              Icons.add, () => updateCartQuantity(item, quantity + 1),
-              enabled: item.stok > quantity),
+            constraints: const BoxConstraints(minWidth: 35),
+            alignment: Alignment.center,
+            child: Text(
+              '$quantity',
+              style: const TextStyle(
+                color: AppColor.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          _buildControlButton(
+            Icons.add,
+            () => updateCartQuantity(item, quantity + 1),
+            enabled: item.stok > quantity,
+          ),
         ],
       ),
     );
   }
 
-  Widget buildControlButton(IconData icon, VoidCallback onPressed,
+  Widget _buildControlButton(IconData icon, VoidCallback onPressed,
       {bool enabled = true}) {
-    return InkWell(
-      onTap: enabled ? onPressed : null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Icon(icon,
-            color: enabled ? AppColor.primary : Colors.grey, size: 18),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onPressed : null,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            icon,
+            color: enabled ? AppColor.primary : Colors.grey[400],
+            size: 20,
+          ),
+        ),
       ),
     );
   }
@@ -388,18 +467,28 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
   }
 
   Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: TextField(
         controller: searchbarController,
         decoration: InputDecoration(
-          hintText: 'Search menu...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: BorderSide(color: Colors.grey[300]!, width: 0.5)),
+          hintText: 'Cari menu...',
+          hintStyle: TextStyle(color: Colors.grey[400]),
+          prefixIcon: Icon(Icons.search, color: AppColor.primary),
+          border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
         onChanged: searchMenu,
       ),

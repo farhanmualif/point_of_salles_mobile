@@ -58,7 +58,6 @@ class PaymentService {
       "success_redirect_url": "$baseUrl/api/xendit/ewallet/success"
     };
 
-    print('Check in Service $typePembayaran');
 
     if (paymentMethod != 'CASH') {
       requestBody["tipe_pembayaran"] = typePembayaran;
