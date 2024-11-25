@@ -112,3 +112,6 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/logo/icon.png"
   adaptive_icon_background: "assets/logo/icon_foreground.png"
+
+dependency_overrides:
+  win32: 5.0.7
