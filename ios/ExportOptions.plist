@@ -11,5 +11,9 @@
         <key>com.example.pointOfSallesMobileApp</key>
         <string>YOUR_PROVISIONING_PROFILE_NAME</string>
     </dict>
+    <key>signingCertificate</key>
+    <string>Apple Distribution</string>
+    <key>signingStyle</key>
+    <string>manual</string>
 </dict>
 </plist> 

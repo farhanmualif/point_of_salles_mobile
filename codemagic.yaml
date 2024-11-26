@@ -1,37 +1,11 @@
 workflows:
   ios-workflow:
-    name: iOS Workflow
-    instance_type: mac_mini_m1
+    name: iOS Debug Build
     environment:
-      xcode: 14.3
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.example.pointOfSallesMobileApp
+      xcode: latest
     scripts:
-      - name: Set up code signing settings
+      - name: Build debug iOS
         script: |
-          keychain initialize
-      - name: Install Flutter dependencies
-        script: |
-          flutter pub get
-      - name: Pod install
-        script: |
-          cd ios && pod install
-      - name: Flutter build
-        script: |
-          flutter build ios --release
-      - name: Build IPA
-        script: |
-          cd ios
-          xcodebuild -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath Runner.xcarchive \
-            archive
-          xcodebuild -exportArchive \
-            -archivePath Runner.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath ../build/ios/ipa
+          flutter build ios --debug --no-codesign
     artifacts:
-      - build/ios/ipa/*.ipa
+      - build/ios/iphoneos/Runner.app
