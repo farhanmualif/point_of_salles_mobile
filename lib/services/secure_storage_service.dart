@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -42,5 +44,35 @@ class SecureStorageService {
   // Menghapus semua data (untuk logout)
   static Future<void> clearAll() async {
     await _storage.deleteAll();
+  }
+
+   static Future<String?> getAccessLevel() async {
+    try {
+      final userDataJson = await SecureStorageService.getUserData();
+      if (userDataJson != null) {
+        final userData = json.decode(userDataJson);
+        return userData['akses'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting access level: $e');
+      return null;
+    }
+  }
+
+  static bool hasAdminAccess(String? accessLevel) {
+    return accessLevel == '1' || accessLevel == '2';
+  }
+
+  static bool hasOwnerAccess(String? accessLevel) {
+    return accessLevel == '1';
+  }
+
+  static bool hasKasirAccess(String? accessLevel) {
+    return accessLevel == '3';
+  }
+
+  static Future<String?> getUserId() async {
+    return await _storage.read(key: 'user_id');
   }
 }

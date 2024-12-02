@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/detail_transaction.dart';
 import 'package:point_of_salles_mobile_app/models/ewallet_payment_status.dart';
 import 'package:point_of_salles_mobile_app/models/va_payment_status.dart';
@@ -67,61 +68,63 @@ class Transaction {
           .map((detail) => DetailTransaction.fromJson(detail))
           .toList(),
     );
-  } 
+  }
 }
 
 // models/transaction_history.dart
 class TransactionHistory {
   final String invoiceId;
-  final String xenditId;
-  final double totalHarga;
+  final String xendId;
+  final int totalHarga;
   final String namaUser;
   final DateTime tanggal;
-  final List<TransactionItemHistory> items;
+  final String? statusOrder;
+  final String? noHp;
+  final String? paymentChannel;
+  final List<TransactionItem> items;
 
   TransactionHistory({
     required this.invoiceId,
-    required this.xenditId,
+    required this.xendId,
     required this.totalHarga,
     required this.namaUser,
     required this.tanggal,
+    this.statusOrder,
+    this.noHp,
+    this.paymentChannel,
     required this.items,
   });
 
   factory TransactionHistory.fromJson(Map<String, dynamic> json) {
+    final itemsList = json['items'] as List<dynamic>;
+
+    final parsedItems = itemsList.map((item) {
+      return TransactionItem.fromJson(item as Map<String, dynamic>);
+    }).toList();
+
     return TransactionHistory(
-      invoiceId: json['invoiceId'] ?? '',
-      xenditId: json['xenditId'] ?? '',
-      totalHarga: (json['totalHarga'] ?? 0).toDouble(),
-      namaUser: json['namaUser'] ?? '',
-      tanggal:
-          DateTime.parse(json['tanggal'] ?? DateTime.now().toIso8601String()),
-      items: (json['items'] as List<dynamic>?)
-              ?.map((item) => TransactionItemHistory.fromJson(item))
-              .toList() ??
-          [],
+      invoiceId: json['invoiceId'] as String,
+      xendId: json['xendId'] as String,
+      totalHarga: json['totalHarga'] as int,
+      namaUser: json['namaUser'] as String,
+      tanggal: DateTime.parse(json['tanggal']),
+      statusOrder: json['statusOrder'] as String?,
+      noHp: json['nomorHpAktif'] as String?,
+      paymentChannel: json['paymentChannel'] as String?,
+      items: parsedItems,
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'invoiceId': invoiceId,
-        'xenditId': xenditId,
-        'totalHarga': totalHarga,
-        'namaUser': namaUser,
-        'tanggal': tanggal.toIso8601String(),
-        'items': items.map((item) => item.toJson()).toList(),
-      };
 }
 
-class TransactionItemHistory {
+class TransactionItem {
   final String namaProduk;
   final String kategori;
-  final double hargaProduk;
+  final int hargaProduk;
   final int qtyProduk;
   final String? fotoProduk;
-  final double subtotal;
+  final int subtotal;
 
-  TransactionItemHistory({
+  TransactionItem({
     required this.namaProduk,
     required this.kategori,
     required this.hargaProduk,
@@ -130,23 +133,14 @@ class TransactionItemHistory {
     required this.subtotal,
   });
 
-  factory TransactionItemHistory.fromJson(Map<String, dynamic> json) {
-    return TransactionItemHistory(
-      namaProduk: json['namaProduk'] ?? '',
-      kategori: json['kategori'] ?? '',
-      hargaProduk: (json['hargaProduk'] ?? 0).toDouble(),
-      qtyProduk: json['qtyProduk'] ?? 0,
-      fotoProduk: json['fotoProduk'],
-      subtotal: (json['subtotal'] ?? 0).toDouble(),
+  factory TransactionItem.fromJson(Map<String, dynamic> json) {
+    return TransactionItem(
+      namaProduk: json['namaProduk'] as String,
+      kategori: json['kategori'] as String,
+      hargaProduk: json['hargaProduk'] as int,
+      qtyProduk: json['qtyProduk'] as int,
+      fotoProduk: json['fotoProduk'] as String?,
+      subtotal: json['subtotal'] as int,
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'namaProduk': namaProduk,
-        'kategori': kategori,
-        'hargaProduk': hargaProduk,
-        'qtyProduk': qtyProduk,
-        'fotoProduk': fotoProduk,
-        'subtotal': subtotal,
-      };
 }

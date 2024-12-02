@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:point_of_salles_mobile_app/screens/payment_screen.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:point_of_salles_mobile_app/services/payment_service.dart';
 import 'package:point_of_salles_mobile_app/models/xendit_payment_method.dart';
@@ -225,10 +226,8 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           child: Column(
             children: [
               // Bank Options
-              for (var method in PaymentMethods.getAllMethods().where(
-                  (element) =>
-                      element.type == 'VIRTUAL_ACCOUNT' &&
-                      element.id != 'QRIS'))
+              for (var method in PaymentMethods.getAllMethods()
+                  .where((element) => element.type == 'VIRTUAL_ACCOUNT'))
                 RadioListTile(
                   title: Text(method.name),
                   value: method.id,
@@ -240,22 +239,6 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
                     });
                   },
                 ),
-
-              // Divider
-              Divider(height: 1, color: Colors.grey[200]),
-
-              // QRIS Option
-              RadioListTile(
-                title: const Text('QRIS'),
-                value: 'QRIS',
-                groupValue: _selectedBank,
-                activeColor: AppColor.primary,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedBank = newValue.toString();
-                  });
-                },
-              ),
             ],
           ),
         ),
@@ -363,7 +346,7 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
           _showError('Silakan pilih bank terlebih dahulu');
           return;
         }
-        paymentType = _selectedBank == 'QRIS' ? 'QRIS' : 'VA';
+        paymentType = 'VA';
         codeBank = _selectedBank;
         debugPrint('Selected Bank: $codeBank');
         break;
@@ -421,9 +404,11 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
             response.data?['statusOrder'] == 'UNPAID')) {
       if (!mounted) return;
 
-      Navigator.pushReplacementNamed(
-        context,
-        "/payment_screen",
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) =>
+              PaymentScreen(invoiceId: response.data?['invoiceId']),
+        ),
       );
     } else {
       _showError(response.message);

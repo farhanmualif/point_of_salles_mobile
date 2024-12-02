@@ -22,11 +22,6 @@ class PaymentMethods {
         type: 'VIRTUAL_ACCOUNT',
       ),
       XenditPaymentMethod(
-        id: 'QRIS',
-        name: 'QRIS',
-        type: 'VIRTUAL_ACCOUNT',
-      ),
-      XenditPaymentMethod(
         id: 'BNI',
         name: 'Bank BNI',
         type: 'VIRTUAL_ACCOUNT',
@@ -40,12 +35,6 @@ class PaymentMethods {
         id: 'PERMATA',
         name: 'Bank Permata',
         type: 'VIRTUAL_ACCOUNT',
-      ),
-      // E-Wallets
-      XenditPaymentMethod(
-        id: 'OVO',
-        name: 'OVO',
-        type: 'EWALLET',
       ),
       XenditPaymentMethod(
         id: 'DANA',

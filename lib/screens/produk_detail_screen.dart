@@ -145,6 +145,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildProductImage() {
+    debugPrint("${dotenv.env['API_URL']}/${_product!.fotoProduk}");
     return Container(
       height: 300,
       width: double.infinity,
@@ -163,7 +164,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         borderRadius: BorderRadius.circular(16),
         child: Image.network(
           _product!.fotoProduk != null
-              ? '${dotenv.env['API_URL']}/produk_thumbnail/${_product!.fotoProduk}'
+              ? '${dotenv.env['API_URL']}/${_product!.fotoProduk}'
               : '${dotenv.env['API_URL']}/produk_thumbnail/thumbnail_1.jpg',
           fit: BoxFit.cover,
         ),

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/base_response.dart';
 import 'package:point_of_salles_mobile_app/models/login_model.dart';
 import 'package:point_of_salles_mobile_app/services/api_exception.dart';
@@ -85,7 +84,6 @@ class AuthService {
           headers: {"Authorization": "Bearer $token"});
 
       final resBody = BaseResponse.fromJson(json.decode(response.body));
-      debugPrint("message: ${resBody.message}");
       return response.statusCode == 200 && resBody.status;
     } on TimeoutException {
       return false;

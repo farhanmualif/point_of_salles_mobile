@@ -10,11 +10,11 @@ import 'package:point_of_salles_mobile_app/services/secure_storage_service.dart'
 class KaryawanService {
   final String? baseUrl = dotenv.env['API_URL'];
 
-  Future<BaseResponse> fetchProfile(String userId) async {
+  Future<BaseResponse> fetchProfile(String access) async {
     try {
       String? token = await SecureStorageService.getToken();
 
-      // Function to make the API call
+      // Fungsi helper untuk panggilan API
       Future<http.Response> makeApiCall(String endpoint) {
         return http.get(
           Uri.parse("${baseUrl!}/$endpoint"),
@@ -26,41 +26,58 @@ class KaryawanService {
         );
       }
 
-      // Attempt to fetch Karyawan profile
-      final response = await makeApiCall("api/karyawan/profil");
-
-      if (response.statusCode == 200) {
-        final responseBody = json.decode(response.body);
-        Karyawan karyawan = Karyawan.fromJson(responseBody['data']);
-
-        return BaseResponse<Karyawan>(
-          status: responseBody['status'],
-          message: responseBody['message'],
-          data: karyawan,
-        );
-      } else if (response.statusCode == 404) {
-        // Attempt to fetch Admin profile if Karyawan profile is not found
-        final adminResponse = await makeApiCall("api/admin/profil");
-        final adminResponseBody = json.decode(adminResponse.body);
-        Mitra mitra = Mitra.fromJson(adminResponseBody['data']);
-        return BaseResponse<Mitra>(
-          status: adminResponseBody['status'],
-          message: adminResponseBody['message'],
-          data: mitra,
-        );
-      } else {
-        // Handle any other non-200 responses
-        return _handleResponse(response);
+      // Handle berdasarkan tipe akses
+      switch (access) {
+        case '2':
+          return await _handleAdminProfile(makeApiCall);
+        case '3':
+          return await _handleKaryawanProfile(makeApiCall);
+        default:
+          return BaseResponse<Mitra>(
+            status: false,
+            message: "Terjadi kesalahan saat mengambil profil",
+          );
       }
     } catch (e) {
-      return BaseResponse<Karyawan>(
+      return BaseResponse<dynamic>(
         status: false,
         message: 'Terjadi kesalahan: ${e.toString()}',
       );
     }
   }
 
-// Helper function to handle the response and return BaseResponse
+  // Handler untuk profil karyawan
+  Future<BaseResponse> _handleKaryawanProfile(
+      Future<http.Response> Function(String) makeApiCall) async {
+    final response = await makeApiCall("api/karyawan/profil");
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      return BaseResponse<Karyawan>(
+        status: responseBody['status'],
+        message: responseBody['message'],
+        data: Karyawan.fromJson(responseBody['data']),
+      );
+    }
+    return _handleResponse(response);
+  }
+
+  // Handler untuk profil kasir
+  Future<BaseResponse> _handleAdminProfile(
+      Future<http.Response> Function(String) makeApiCall) async {
+    final response = await makeApiCall("api/admin/profil");
+    debugPrint("response: ${response.body}");
+    final adminResponseBody = json.decode(response.body);
+    if (response.statusCode == 200) {
+      return BaseResponse<Mitra>(
+        status: adminResponseBody['status'],
+        message: adminResponseBody['message'],
+        data: Mitra.fromJson(adminResponseBody['data']),
+      );
+    }
+    return _handleResponse(response);
+  }
+
+  // Helper function to handle the response and return BaseResponse
   BaseResponse<Karyawan> _handleResponse(http.Response response) {
     final responseBody = json.decode(response.body);
     return BaseResponse<Karyawan>(

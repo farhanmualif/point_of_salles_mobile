@@ -23,7 +23,6 @@ class TransactionService {
         },
       );
 
-      debugPrint("pending transction ${response.body}");
       final responseBody = json.decode(response.body);
       return BaseResponse.fromJson(responseBody, Transaction.fromJson);
     } on TimeoutException {
@@ -68,42 +67,92 @@ class TransactionService {
       final responseBody = json.decode(response.body);
 
       if (response.statusCode == 200) {
+        if (responseBody['data'] == null) {
+          return BaseResponse<List<TransactionHistory>>(
+            status: false,
+            message: 'Data tidak ditemukan',
+            data: [],
+          );
+        }
+
+        final List<dynamic> transactionList =
+            responseBody['data'] as List<dynamic>;
+
+        List<TransactionHistory> transactions = [];
+        for (var item in transactionList) {
+          try {
+            final transaction = TransactionHistory.fromJson(item);
+
+            transactions.add(transaction);
+          } catch (e) {
+            debugPrint("Error parsing transaction: $e");
+          }
+        }
+
         return BaseResponse<List<TransactionHistory>>(
           status: responseBody['status'] ?? false,
           message: responseBody['message'] ?? '',
-          data: (responseBody['data'] as List<dynamic>?)
-                  ?.map((item) => TransactionHistory.fromJson(item))
-                  .toList() ??
-              [],
+          data: transactions,
         );
       } else {
         throw ApiException(
           message: responseBody['message'] ?? 'Terjadi kesalahan pada server',
         );
       }
-    } on TimeoutException {
+    } catch (e, stackTrace) {
+      debugPrint("Stack trace: $stackTrace");
       return BaseResponse(
         status: false,
-        message: 'Request timeout. Silakan coba lagi.',
-        errors: {
-          'timeout': ['Koneksi terlalu lama, silakan periksa internet Anda.'],
-        },
-      );
-    } on ApiException catch (e) {
-      return BaseResponse(
-        status: false,
-        message: e.message,
-        errors: {
-          'api': [e.message],
-        },
-      );
-    } catch (e) {
-      return BaseResponse(
-        status: false,
-        message: 'Terjadi kesalahan',
+        message: 'Terjadi kesalahan: $e',
         errors: {
           'unknown': [e.toString()],
         },
+      );
+    }
+  }
+
+  Future<BaseResponse<Transaction>> getPendingTransactionByInvoice(
+      String invoiceId) async {
+    try {
+      String? token = await SecureStorageService.getToken();
+      if (token == null) {
+        return BaseResponse(
+          status: false,
+          message: 'Token tidak ditemukan',
+          data: null,
+        );
+      }
+
+      final response = await http.get(
+        Uri.parse('${dotenv.env['API_URL']}/api/transaksi/pending/$invoiceId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return BaseResponse(
+          status: responseData['status'],
+          message: responseData['message'],
+          data: responseData['data'] != null
+              ? Transaction.fromJson(responseData['data'])
+              : null,
+        );
+      } else {
+        return BaseResponse(
+          status: false,
+          message: responseData['message'] ?? 'Terjadi kesalahan',
+          data: null,
+        );
+      }
+    } catch (e) {
+      return BaseResponse(
+        status: false,
+        message: 'Terjadi kesalahan: $e',
+        data: null,
       );
     }
   }

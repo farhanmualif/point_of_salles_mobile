@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:point_of_salles_mobile_app/screens/main_screen.dart';
 import 'package:point_of_salles_mobile_app/services/auth_service.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 
@@ -32,11 +33,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.status) {
         if (!mounted) return;
-        Navigator.of(context).pushReplacementNamed("/splash_screen");
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
       } else {
         setState(() {
           if (response.errors != null) {
-            // Menampilkan pesan timeout jika ada
             if (response.errors!.containsKey('timeout')) {
               _errorMessage = response.errors!['timeout']!.first;
             } else {

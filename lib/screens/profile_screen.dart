@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/base_response.dart';
 import 'package:point_of_salles_mobile_app/models/profile.dart';
 import 'package:point_of_salles_mobile_app/services/auth_service.dart';
 import 'package:point_of_salles_mobile_app/services/profile_service.dart';
+import 'package:point_of_salles_mobile_app/services/secure_storage_service.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,8 +22,152 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService(); // Tambahkan ini
   dynamic _profile;
   String _error = '';
+  bool _isLoading = true;
 
   final String? baseUrl = dotenv.env['API_URL'];
+
+  // Konstanta untuk mengurangi rebuild
+  static const double _avatarSize = 120.0;
+  static const double _headerPadding = 32.0;
+  static const double _borderRadius = 30.0;
+
+  // Pisahkan widget skeleton ke method terpisah
+  Widget _buildSkeletonHeader() {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.9,
+      padding:
+          const EdgeInsets.symmetric(vertical: _headerPadding, horizontal: 24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(_borderRadius),
+          bottomRight: Radius.circular(_borderRadius),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: _avatarSize,
+            height: _avatarSize,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: 200,
+            height: 24,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 150,
+            height: 16,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 24),
+          Container(
+            width: 200,
+            height: 45,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonInfoCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 80,
+                height: 14,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 4),
+              Container(
+                width: 120,
+                height: 16,
+                color: Colors.white,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF9F9F9),
+      body: SafeArea(
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildSkeletonHeader(),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 150,
+                        height: 24,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: List.generate(
+                            3,
+                            (index) => _buildSkeletonInfoCard(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        width: double.infinity,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -29,21 +177,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfile() async {
     try {
-      // Assuming you have a way to get the current user's ID
-      String userId = 'current_user_id'; // Replace with actual user ID
-      BaseResponse response = await _karyawanService.fetchProfile(userId);
+      String? accessLevel = await SecureStorageService.getAccessLevel();
+      BaseResponse response =
+          await _karyawanService.fetchProfile(accessLevel ?? '');
       if (response.status) {
         setState(() {
           _profile = response.data;
+          _isLoading = false;
         });
       } else {
         setState(() {
           _error = response.message;
+          _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
         _error = 'Terjadi kesalahan saat memuat profil';
+        _isLoading = false;
       });
     }
   }
@@ -186,27 +337,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_error.isNotEmpty) {
-      return _buildErrorState();
-    }
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildProfileContent(),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildErrorState() {
@@ -478,6 +608,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return _buildLoadingState();
+    }
+
+    if (_error.isNotEmpty) {
+      return _buildErrorState();
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF9F9F9),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildHeader(),
+              _buildProfileContent(),
+            ],
           ),
         ),
       ),

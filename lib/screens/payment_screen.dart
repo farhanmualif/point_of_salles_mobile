@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:point_of_salles_mobile_app/screens/payment_success.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:flutter/material.dart';
@@ -13,7 +11,8 @@ import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:intl/intl.dart';
 
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key});
+  final String? invoiceId;
+  const PaymentScreen({super.key, this.invoiceId});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -31,7 +30,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPendingTransaction();
+    if (widget.invoiceId != null) {
+      _loadPendingTransactionByInvoice(widget.invoiceId!);
+    } else {
+      _loadPendingTransaction();
+    }
   }
 
   @override
@@ -94,6 +97,38 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
+  Future<void> _loadPendingTransactionByInvoice(String invoiceId) async {
+    try {
+      setState(() => _isLoading = true);
+
+      final response =
+          await _transaksiService.getPendingTransactionByInvoice(invoiceId);
+
+      if (!mounted) return;
+
+      if (response.status && response.data != null) {
+        setState(() {
+          _transaksi = response.data;
+          if (_transaksi?.vaPaymentStatus != null) {
+            _startCountdown();
+          }
+          _error = null;
+        });
+      } else {
+        setState(() {
+          _error = response.message;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Terjadi kesalahan saat memuat data';
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   String formatRupiah(int nominal) {
     final formatCurrency = NumberFormat.currency(
       locale: 'id_ID',
@@ -103,12 +138,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return formatCurrency.format(nominal);
   }
 
-  void _copyToClipboard(String text) {
+  void _copyToClipboard(String text, {String? message}) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Nomor VA berhasil disalin'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(message ?? 'Teks berhasil disalin'),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -233,7 +268,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget build(BuildContext context) {
     if (_error != null) {
       return Scaffold(
-        body: Center(child: Text(_error!)),
+        appBar: AppBar(
+          elevation: 0,
+          centerTitle: true,
+          title: const Text(
+            'Menunggu Pembayaran',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_error!),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Kembali'),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -294,7 +353,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ],
                   const SizedBox(height: 24.0),
                   const SizedBox(height: 24.0),
-                  // jika _transaksi.ewalletPaymentStatus.actions.qrCheckoutString atau _transaksi.ewalletPaymentStatus.actions.mobile_deeplink_checkout_url tidak null maka generate qrCode nya menjadi QR CODE
                   if (_transaksi?.ewalletPaymentStatus?.actions
                               .qrCheckoutString !=
                           null ||
@@ -331,7 +389,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     const SizedBox(height: 24.0),
                   ],
-
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: const Text(
@@ -361,7 +418,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text('Invoice'),
-                            Text(_transaksi?.invoiceId ?? ''),
+                            GestureDetector(
+                              onTap: () => _copyToClipboard(
+                                  _transaksi?.invoiceId ?? '',
+                                  message: 'Nomor Invoice berhasil disalin'),
+                              child: Row(
+                                children: [
+                                  Text(_transaksi?.invoiceId ?? ''),
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.copy, size: 18),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8.0),
@@ -437,6 +505,42 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
+                        if (_transaksi?.vaPaymentStatus != null) {
+                          // Untuk pembayaran VA
+                          Navigator.pushNamed(context, '/payment_simulator');
+                        } else if (_transaksi?.ewalletPaymentStatus != null) {
+                          // Untuk pembayaran E-wallet
+                          final paymentUrl = _transaksi?.ewalletPaymentStatus
+                                  ?.actions.qrCheckoutString ??
+                              _transaksi?.ewalletPaymentStatus?.actions
+                                  .mobileDeeplinkCheckoutUrl ??
+                              _transaksi?.ewalletPaymentStatus?.actions
+                                  .mobileWebCheckoutUrl;
+
+                          if (paymentUrl != null) {
+                            Navigator.pushNamed(context, '/webview',
+                                arguments: {'url': paymentUrl});
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: AppColor.primary,
+                        padding: EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: MediaQuery.of(context).size.width * 0.215,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                      child: const Text('Simulator Pembayaran'),
+                    ),
+                  ),
+                  const SizedBox(height: 4.0),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
@@ -470,8 +574,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         idTransaction: idTransaction,
       );
 
-      debugPrint("test");
-      debugPrint("payment data: ${checkPayment.data}");
       if (checkPayment.data != null &&
           (checkPayment.data['status'] == 'SUCCEEDED' ||
               checkPayment.data['status'] == 'INACTIVE')) {

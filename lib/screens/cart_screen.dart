@@ -56,23 +56,57 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
-  Future<void> deleteCart() async {
+  Future<void> handleDeleteCart(String cartId) async {
     try {
       setState(() {
         _isLoading = true;
       });
-      await _cartService.delete();
+
+      final response = await _cartService.deleteById(cartId);
+
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Hapus Keranjang'), backgroundColor: Colors.green));
+
+      if (!response.status) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal menghapus keranjang'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        // Refresh data keranjang
+        await _fetchCartData();
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+        SnackBar(
+          content: Text('Terjadi kesalahan: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> deleteCart() async {
+    try {
+      final response = await _cartService.delete();
+      if (!mounted) return;
+      if (!response.status) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.message)),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
     }
   }
 
@@ -136,10 +170,8 @@ class _CartScreenState extends State<CartScreen> {
                                         );
                               });
                             },
-                            onDeleteItem: () {
-                              setState(() {
-                                _cartItems.removeAt(index);
-                              });
+                            onDeleteItem: () async {
+                              await handleDeleteCart(_cartItems[index].id);
                             },
                           );
                         },
@@ -312,7 +344,7 @@ class CartItemWidget extends StatelessWidget {
                         image: DecorationImage(
                           image: detail.produk.fotoProduk != null
                               ? NetworkImage(
-                                  '$apiUrl/produk_thumbnail/${detail.produk.fotoProduk}')
+                                  '$apiUrl/${detail.produk.fotoProduk}')
                               : NetworkImage(
                                   '$apiUrl/produk_thumbnail/thumbnail_1.jpg'),
                           fit: BoxFit.cover,
@@ -382,6 +414,7 @@ class CartItemWidget extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _QuantityButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;

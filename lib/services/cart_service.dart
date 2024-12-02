@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/base_response.dart';
 import 'package:point_of_salles_mobile_app/models/cart_detail_model.dart';
 import 'package:point_of_salles_mobile_app/models/cart_model.dart';
@@ -74,8 +73,6 @@ class CartService {
         }),
       );
 
-      debugPrint("response post cart: ${response.body}");
-
       if (response.statusCode == 200) {
         final responseBody = json.decode(response.body);
         return BaseResponse<String>(
@@ -145,7 +142,6 @@ class CartService {
               },
               body: json.encode({"qtyNew": newQty}));
 
-      debugPrint("after delete cart ${response.body}");
       final responseBody = json.decode(response.body);
 
       if (response.statusCode == 200) {
@@ -313,6 +309,39 @@ class CartService {
     } catch (e) {
       return BaseResponse(
           status: false, message: 'Terjadi kesalahan: ${e.toString()}');
+    }
+  }
+
+  Future<BaseResponse> deleteById(String cartId) async {
+    try {
+      String? token = await SecureStorageService.getToken();
+
+      final response = await http.delete(
+        Uri.parse("${baseUrl!}/api/keranjang/$cartId"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+      final responseBody = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return BaseResponse(
+          status: responseBody['status'],
+          message: responseBody['message'],
+        );
+      } else {
+        return BaseResponse(
+          status: false,
+          message: responseBody['message'],
+        );
+      }
+    } catch (e) {
+      return BaseResponse(
+        status: false,
+        message: 'Terjadi kesalahan: ${e.toString()}',
+      );
     }
   }
 }

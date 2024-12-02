@@ -120,16 +120,12 @@ class BottomNavBar extends StatelessWidget {
               BottomNavigationBarItem(
                 icon: const Icon(Icons.shopping_cart_outlined),
                 activeIcon: const Icon(Icons.shopping_cart),
-                label: userAccess == 2
-                    ? 'Produk'
-                    : 'Jual',
+                label: userAccess == 2 ? 'Produk' : 'Jual',
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.history_outlined),
                 activeIcon: const Icon(Icons.history),
-                label: userAccess == 2
-                    ? 'Stok'
-                    : 'Riwayat',
+                label: userAccess == 2 ? 'Stok' : 'Riwayat',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.person_outline),

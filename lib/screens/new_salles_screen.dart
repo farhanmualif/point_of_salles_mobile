@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart';
 import 'package:point_of_salles_mobile_app/models/product_model.dart';
 import 'package:point_of_salles_mobile_app/services/cart_service.dart';
 import 'package:point_of_salles_mobile_app/services/product_service.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:point_of_salles_mobile_app/utils/currency_formatter.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:shimmer/shimmer.dart';
 
 class NewSallesScreen extends StatefulWidget {
   const NewSallesScreen({super.key});
@@ -28,11 +29,125 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
   final ProductService productService = ProductService();
 
   TextEditingController searchbarController = TextEditingController();
+  final RefreshController _refreshController = RefreshController();
+
+  // Constants
+  static const double _cardPadding = 16.0;
+  static const double _borderRadius = 12.0;
+  static const double _imageSize = 70.0;
+
+  // Shimmer loading widget
+  Widget _buildShimmerLoading() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        children: [
+          _buildShimmerSearchBar(),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: 6,
+              itemBuilder: (_, __) => _buildShimmerProductCard(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerSearchBar() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+      ),
+    );
+  }
+
+  Widget _buildShimmerProductCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      padding: const EdgeInsets.all(_cardPadding),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(_borderRadius),
+      ),
+      child: Row(
+        children: [
+          // Product Image Skeleton
+          Container(
+            width: _imageSize,
+            height: _imageSize,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Product Info Skeleton
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 150,
+                  height: 20,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: 100,
+                  height: 16,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: 80,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Quantity Control Skeleton
+          Container(
+            width: 100,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
     fetchProducts(); // Fetch products on initialization
+  }
+
+  @override
+  void dispose() {
+    _refreshController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    try {
+      await fetchProducts();
+      _refreshController.refreshCompleted();
+    } catch (e) {
+      _refreshController.refreshFailed();
+    }
   }
 
   Future<void> fetchProducts() async {
@@ -122,82 +237,97 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? const Scaffold(
-            body: Center(
-                child: CircularProgressIndicator(color: AppColor.primary)),
-          )
-        : Scaffold(
-            appBar: AppBar(
-              backgroundColor: const Color(0xFFF9F9F9),
-              elevation: 0,
-              centerTitle: true,
-              title: const Text(
-                'Menu',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20),
-              ),
-              actions: [
-                GestureDetector(
-                  onTap: () {
-                    postCart(selectedProducts).then((response) {
-                      Navigator.of(context).pushNamed("/cart_screen");
-                    });
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 20),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50),
-                      color: Colors.grey[200],
-                    ),
-                    child: SvgPicture.asset("assets/icons/shopping-cart.svg",
-                        width: 18, height: 18),
-                  ),
-                ),
-              ],
-            ),
-            body: Container(
-              color: const Color(0xfff6f6f6),
-              child: buildMenu(),
-            ),
-            floatingActionButton: FloatingActionButton.extended(
-              heroTag: UniqueKey(),
-              onPressed: () {
-                postCart(selectedProducts).then((response) {
-                  Navigator.of(context).pushNamed("/cart_screen");
-                });
-              },
-              label: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        CurrencyFormatter.formatRupiah(calculateTotalPrice()),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    const Expanded(
-                      child: Row(
-                        children: [
-                          Text('Lanjut', style: TextStyle(color: Colors.white)),
-                          Icon(Icons.arrow_forward, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              backgroundColor: AppColor.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(100),
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: _buildBody(),
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFFF9F9F9),
+      elevation: 0,
+      centerTitle: true,
+      title: const Text(
+        'Menu',
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+      ),
+      actions: [_buildCartButton()],
+    );
+  }
+
+  Widget _buildCartButton() {
+    return GestureDetector(
+      onTap: () => _navigateToCart(),
+      child: Container(
+        margin: const EdgeInsets.only(right: 20),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(50),
+          color: Colors.grey[200],
+        ),
+        child: SvgPicture.asset(
+          "assets/icons/shopping-cart.svg",
+          width: 18,
+          height: 18,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    return Container(
+      color: const Color(0xfff6f6f6),
+      child: SmartRefresher(
+        controller: _refreshController,
+        onRefresh: _onRefresh,
+        child: isLoading ? _buildShimmerLoading() : buildMenu(),
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return FloatingActionButton.extended(
+      heroTag: UniqueKey(),
+      onPressed: _navigateToCart,
+      label: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Text(
+                CurrencyFormatter.formatRupiah(calculateTotalPrice()),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
-          );
+            const Expanded(
+              child: Row(
+                children: [
+                  Text('Lanjut', style: TextStyle(color: Colors.white)),
+                  Icon(Icons.arrow_forward, color: Colors.white),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      backgroundColor: AppColor.primary,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(100),
+      ),
+    );
+  }
+
+  Future<void> _navigateToCart() async {
+    await postCart(selectedProducts);
+    if (!mounted) return;
+    Navigator.of(context).pushNamed("/cart_screen");
   }
 
   Widget buildMenu() {
@@ -224,7 +354,7 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
 
   Widget buildMenuItem(Product item) {
     final imageUrl = item.fotoProduk != null
-        ? '${dotenv.env['API_URL']}/produk_thumbnail/${item.fotoProduk}'
+        ? '${dotenv.env['API_URL']}/${item.fotoProduk}'
         : '${dotenv.env['API_URL']}/produk_thumbnail/thumbnail_1.jpg';
 
     final bool isDisabled = item.status == "0" || item.statusStok == "0";
@@ -326,7 +456,7 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
           ),
           child: Text(
             'Stok: ${item.stok}',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColor.primary,
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -485,7 +615,7 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
         decoration: InputDecoration(
           hintText: 'Cari menu...',
           hintStyle: TextStyle(color: Colors.grey[400]),
-          prefixIcon: Icon(Icons.search, color: AppColor.primary),
+          prefixIcon: const Icon(Icons.search, color: AppColor.primary),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 15),

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -55,16 +54,14 @@ class PaymentService {
       "nama_customer": customerName,
       "metode_pembayaran": finalPaymentMethod,
       "phone_number": phoneNumber,
-      "success_redirect_url": "$baseUrl/api/xendit/ewallet/success"
+      "success_redirect_url": "$baseUrl/xendit/ewallet/success",
+      "failure_redirect_url": "$baseUrl/xendit/ewallet/failure",
     };
-
 
     if (paymentMethod != 'CASH') {
       requestBody["tipe_pembayaran"] = typePembayaran;
       requestBody["code_bank"] = codeBank;
     }
-
-    debugPrint("before post: ${json.encode(requestBody)}");
 
     try {
       final response = await http.post(
@@ -76,8 +73,6 @@ class PaymentService {
           "Authorization": "Bearer $token",
         },
       );
-
-      debugPrint("response create payment ${response.body}");
 
       final responseBody = json.decode(response.body);
 
@@ -108,6 +103,77 @@ class PaymentService {
           "Accept": "application/json",
           "Authorization": "Bearer $token",
         },
+      );
+
+      final responseBody = json.decode(response.body);
+
+      return BaseResponse<Map<String, dynamic>>(
+        status: responseBody['status'],
+        message: responseBody['message'],
+        data: responseBody['data'],
+      );
+    } catch (e) {
+      return BaseResponse<Map<String, dynamic>>(
+        status: false,
+        message: 'Terjadi kesalahan: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  Future<BaseResponse<Map<String, dynamic>>> simulatePayment({
+    required String idTransaction,
+    required String amount,
+  }) async {
+    String? token = await SecureStorageService.getToken();
+
+    try {
+      final response = await http.post(
+        Uri.parse("${baseUrl!}/api/xendit/simulate-payment"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: json.encode({
+          "external_id": idTransaction,
+          "amount": amount,
+        }),
+      );
+
+      final responseBody = json.decode(response.body);
+
+      return BaseResponse<Map<String, dynamic>>(
+        status: responseBody['status'],
+        message: responseBody['message'],
+        data: responseBody['data'],
+      );
+    } catch (e) {
+      return BaseResponse<Map<String, dynamic>>(
+        status: false,
+        message: 'Terjadi kesalahan: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  Future<BaseResponse<Map<String, dynamic>>> simulateVAPayment({
+    required String externalId,
+    required String amount,
+  }) async {
+    String? token = await SecureStorageService.getToken();
+
+    try {
+      final response = await http.post(
+        Uri.parse("${baseUrl!}/api/simulate-va-payment/$externalId"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: json.encode({
+          'amount': int.parse(amount),
+        }),
       );
 
       final responseBody = json.decode(response.body);

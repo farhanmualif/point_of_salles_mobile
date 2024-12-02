@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/screens/add_product_form.dart';
 import 'package:point_of_salles_mobile_app/screens/cart_screen.dart';
-import 'package:point_of_salles_mobile_app/screens/edit_product_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/login_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/main_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/payment_screen.dart';
@@ -11,6 +10,8 @@ import 'package:point_of_salles_mobile_app/screens/stock_produk_screen.dart';
 import 'package:point_of_salles_mobile_app/screens/update_profile.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:point_of_salles_mobile_app/screens/payment_simulator_screen.dart';
+import 'package:point_of_salles_mobile_app/screens/payment_webview_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,6 +77,8 @@ class MyApp extends StatelessWidget {
         "/payment_screen": (context) => const PaymentScreen(),
         "/add_product_form": (context) => const AddProductForm(),
         "/stock_product_screen": (context) => const StockProductScreen(),
+        "/payment_simulator": (context) => const PaymentSimulatorScreen(),
+        "/webview": (context) => const PaymentWebViewScreen(),
       },
       onGenerateRoute: (settings) {
         switch (settings.name) {

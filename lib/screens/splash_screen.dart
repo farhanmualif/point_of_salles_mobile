@@ -30,7 +30,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final AuthService authService = AuthService();
       final bool isAuthenticated = await authService.checkAuth();
-  
 
       if (isAuthenticated) {
         debugPrint('authenticated');
