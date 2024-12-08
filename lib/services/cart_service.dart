@@ -344,4 +344,37 @@ class CartService {
       );
     }
   }
+
+  Future<BaseResponse<String>> deleteProductFromCart(String keranjangId, String produkId) async {
+    try {
+      String? token = await SecureStorageService.getToken();
+      final response = await http.delete(
+        Uri.parse("${baseUrl!}/api/keranjang/$keranjangId/produk/$produkId"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      final responseBody = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return BaseResponse<String>(
+          status: responseBody['status'],
+          message: responseBody['message'],
+        );
+      } else {
+        return BaseResponse<String>(
+          status: false,
+          message: responseBody['message'] ?? 'Gagal menghapus produk dari keranjang',
+        );
+      }
+    } catch (e) {
+      return BaseResponse<String>(
+        status: false,
+        message: 'Terjadi kesalahan: ${e.toString()}',
+      );
+    }
+  }
 }

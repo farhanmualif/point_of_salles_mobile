@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/detail_transaction.dart';
 import 'package:point_of_salles_mobile_app/models/ewallet_payment_status.dart';
 import 'package:point_of_salles_mobile_app/models/va_payment_status.dart';

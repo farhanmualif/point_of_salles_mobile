@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:point_of_salles_mobile_app/services/payment_service.dart';
 

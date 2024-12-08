@@ -376,9 +376,6 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
       _isLoading = true;
     });
 
-    print("selected payment method $_selectedPaymentMethod");
-    print("selected payment type $paymentType");
-
     final response = await _paymentService.createPayment(
       customerName: _customerNameController.text,
       paymentMethod: _selectedPaymentMethod,
@@ -411,6 +408,8 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         ),
       );
     } else {
+      if (!mounted) return;
+      Navigator.pop(context);
       _showError(response.message);
     }
   }

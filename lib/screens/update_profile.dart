@@ -240,7 +240,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+              borderSide: const BorderSide(color: AppColor.primary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

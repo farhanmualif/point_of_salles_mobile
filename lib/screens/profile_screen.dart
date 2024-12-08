@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/models/base_response.dart';

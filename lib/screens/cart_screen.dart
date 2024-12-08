@@ -56,25 +56,35 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
-  Future<void> handleDeleteCart(String cartId) async {
+  Future<void> handleDeleteCart(String keranjangId, String produkId) async {
     try {
       setState(() {
         _isLoading = true;
       });
 
-      final response = await _cartService.deleteById(cartId);
+      final response =
+          await _cartService.deleteProductFromCart(keranjangId, produkId);
 
       if (!mounted) return;
 
       if (!response.status) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal menghapus keranjang'),
+          SnackBar(
+            content: Text('Gagal menghapus produk: ${response.message}'),
             backgroundColor: Colors.red,
           ),
         );
-        // Refresh data keranjang
-        await _fetchCartData();
+      } else {
+        setState(() {
+          _cartItems
+              .removeWhere((item) => item.details[0].produk.id == produkId);
+          _fetchCartData();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Produk berhasil dihapus dari keranjang'),
+          ),
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -171,7 +181,8 @@ class _CartScreenState extends State<CartScreen> {
                               });
                             },
                             onDeleteItem: () async {
-                              await handleDeleteCart(_cartItems[index].id);
+                              await handleDeleteCart(_cartItems[index].id,
+                                  _cartItems[index].details[0].produk.id);
                             },
                           );
                         },

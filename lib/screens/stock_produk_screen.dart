@@ -374,7 +374,7 @@ class _StockProductScreenState extends State<StockProductScreen> {
           ),
           child: Text(
             'Stok: ${item.stok}',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColor.primary,
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -422,7 +422,7 @@ class _StockProductScreenState extends State<StockProductScreen> {
               color: AppColor.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.add, color: AppColor.primary, size: 20),
+            child: const Icon(Icons.add, color: AppColor.primary, size: 20),
           ),
           onPressed: () {
             Navigator.of(context).push(
@@ -461,7 +461,7 @@ class _StockProductScreenState extends State<StockProductScreen> {
         decoration: InputDecoration(
           hintText: 'Cari produk...',
           hintStyle: TextStyle(color: Colors.grey[400]),
-          prefixIcon: Icon(Icons.search, color: AppColor.primary),
+          prefixIcon: const Icon(Icons.search, color: AppColor.primary),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 15),

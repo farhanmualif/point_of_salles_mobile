@@ -58,18 +58,22 @@ class _EditProductScreenState extends State<EditProductScreen> {
         if (pickedFile != null) {
           setState(() {
             image = pickedFile;
+            print("Selected image path: ${image!.path}");
           });
         } else {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Tidak ada gambar yang dipilih')),
           );
         }
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal memilih gambar: $e')),
         );
       }
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Izin akses penyimpanan ditolak')),
       );
@@ -100,7 +104,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
       setState(() {
         isLoading = false;
       });
-
+      if (!mounted) return;
       if (response.status) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Produk berhasil diperbarui')),

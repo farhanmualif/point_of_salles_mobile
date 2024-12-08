@@ -54,6 +54,7 @@ class PaymentService {
       "nama_customer": customerName,
       "metode_pembayaran": finalPaymentMethod,
       "phone_number": phoneNumber,
+      "tunai": 20000,
       "success_redirect_url": "$baseUrl/xendit/ewallet/success",
       "failure_redirect_url": "$baseUrl/xendit/ewallet/failure",
     };

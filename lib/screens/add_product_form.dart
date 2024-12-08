@@ -60,7 +60,7 @@ class _AddProductFormState extends State<AddProductForm> {
           );
         }
       } catch (e) {
-        print('Error picking image: $e');
+        debugPrint('Error picking image: $e');
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -182,7 +182,7 @@ class _AddProductFormState extends State<AddProductForm> {
                           ),
                         ),
                         child: image == null
-                            ? Column(
+                            ? const Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
@@ -190,7 +190,7 @@ class _AddProductFormState extends State<AddProductForm> {
                                     color: AppColor.primary,
                                     size: 32,
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8),
                                   Text(
                                     'Tambah Foto',
                                     style: TextStyle(
@@ -425,7 +425,7 @@ class _AddProductFormState extends State<AddProductForm> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+        borderSide: const BorderSide(color: AppColor.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

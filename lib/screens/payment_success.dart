@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:point_of_salles_mobile_app/themes/app_colors.dart';
 import 'package:flutter/services.dart';
+import 'package:point_of_salles_mobile_app/utils/currency_formatter.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -103,7 +104,10 @@ class PaymentSuccessScreen extends StatelessWidget {
                             data['expiration_date'] ??
                             data['created']),
                       ),
-                      _buildDetailRow('Nominal', 'IDR ${_getAmount(data)}'),
+                      _buildDetailRow(
+                          'Nominal',
+                          CurrencyFormatter.formatRupiah(
+                              double.parse(_getAmount(data)))),
                       _buildDetailRow(
                         'No. Handphone',
                         data['account_number'] ?? data['nomorHpAktif'] ?? '-',
@@ -137,7 +141,8 @@ class PaymentSuccessScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "IDR ${_getAmount(data)}",
+                        CurrencyFormatter.formatRupiah(
+                            double.parse(_getAmount(data))),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
