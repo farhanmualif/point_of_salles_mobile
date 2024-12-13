@@ -34,6 +34,8 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Need Bluetooth permission for thermal printer</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Izinkan akses galeri untuk memilih gambar produk</string>
 	<key>NSCameraUsageDescription</key>

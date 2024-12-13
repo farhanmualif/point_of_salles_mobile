@@ -156,4 +156,53 @@ class TransactionService {
       );
     }
   }
+
+  Future<BaseResponse<Map<String, dynamic>>> getReceiptData(String id) async {
+    try {
+      String? token = await SecureStorageService.getToken();
+      debugPrint("Calling receipt API with ID: $id");
+      debugPrint("API URL: ${baseUrl!}/api/transaksi/receipt/$id");
+
+      final response = await http.get(
+        Uri.parse("${baseUrl!}/api/transaksi/receipt/$id"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json"
+        },
+      );
+
+      debugPrint("Receipt API Status Code: ${response.statusCode}");
+      debugPrint("Response body: ${response.body}");
+
+      final responseBody = json.decode(response.body);
+      return BaseResponse.fromJson(
+        responseBody,
+        (json) => json as Map<String, dynamic>,
+      );
+    } on TimeoutException {
+      return BaseResponse(
+        status: false,
+        message: 'Request timeout. Silakan coba lagi.',
+        errors: {
+          'timeout': ['Koneksi terlalu lama, silakan periksa internet Anda.'],
+        },
+      );
+    } on ApiException catch (e) {
+      return BaseResponse(
+        status: false,
+        message: e.message,
+        errors: {
+          'api': [e.message],
+        },
+      );
+    } catch (e) {
+      return BaseResponse(
+        status: false,
+        message: 'Terjadi kesalahan',
+        errors: {
+          'unknown': [e.toString()],
+        },
+      );
+    }
+  }
 }
