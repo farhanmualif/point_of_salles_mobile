@@ -345,7 +345,8 @@ class CartService {
     }
   }
 
-  Future<BaseResponse<String>> deleteProductFromCart(String keranjangId, String produkId) async {
+  Future<BaseResponse<String>> deleteProductFromCart(
+      String keranjangId, String produkId) async {
     try {
       String? token = await SecureStorageService.getToken();
       final response = await http.delete(
@@ -367,7 +368,8 @@ class CartService {
       } else {
         return BaseResponse<String>(
           status: false,
-          message: responseBody['message'] ?? 'Gagal menghapus produk dari keranjang',
+          message: responseBody['message'] ??
+              'Gagal menghapus produk dari keranjang',
         );
       }
     } catch (e) {

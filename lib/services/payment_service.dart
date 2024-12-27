@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -64,6 +65,8 @@ class PaymentService {
       requestBody["code_bank"] = codeBank;
     }
 
+    debugPrint("parameter: ${requestBody.toString()}");
+
     try {
       final response = await http.post(
         Uri.parse("${baseUrl!}/api/transaksi/checkout"),
@@ -74,6 +77,8 @@ class PaymentService {
           "Authorization": "Bearer $token",
         },
       );
+
+      debugPrint("response: ${response.body}");
 
       final responseBody = json.decode(response.body);
 

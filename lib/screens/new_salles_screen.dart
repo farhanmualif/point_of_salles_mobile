@@ -219,6 +219,7 @@ class _NewSallesScreenState extends State<NewSallesScreen> {
       List<Product> productList =
           products.map((map) => map.values.first).toList();
 
+
       // Kirim data yang sudah dikonversi
       final response = await _cartService.postCart(productList);
 

@@ -120,13 +120,11 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
-  // Fixed total calculation to use actual item totals
+  // Perbaikan perhitungan total
   double get total => _cartItems.fold(
       0,
       (sum, item) =>
-          sum +
-          item.details
-              .fold(0, (sum, detail) => sum + detail.harga * detail.qty));
+          sum + item.details.fold(0, (sum, detail) => sum + detail.harga));
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +384,7 @@ class CartItemWidget extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             CurrencyFormatter.formatRupiah(
-                                (detail.harga * detail.qty).toDouble()),
+                                detail.harga.toDouble()),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],

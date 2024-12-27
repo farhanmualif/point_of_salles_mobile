@@ -160,8 +160,6 @@ class _SallesScreenState extends State<SallesScreen> {
                 // for (var element in _selectedProducts) {
                 //   products.addAll(element.values.toList());
                 // }
-                debugPrint(
-                    'Selected Products: ${_selectedProducts.map((productMap) => productMap.values.map((product) => '${product.namaProduk}: Rp ${product.hargaProduk} Rp ${product.count}').join(', ')).join(', ')}');
 
                 // Navigator.of(context).pushNamed("/cart_screen");
               },
