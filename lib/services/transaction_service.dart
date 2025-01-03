@@ -14,6 +14,7 @@ class TransactionService {
   Future<BaseResponse<Transaction>> getPendingTransaction() async {
     try {
       String? token = await SecureStorageService.getToken();
+      debugPrint("token: $token");
 
       final response = await http.get(
         Uri.parse("${baseUrl!}/api/transaksi/pending"),
@@ -22,6 +23,8 @@ class TransactionService {
           "Accept": "application/json"
         },
       );
+
+      debugPrint("response get pending service: ${response.body}");
 
       final responseBody = json.decode(response.body);
       return BaseResponse.fromJson(responseBody, Transaction.fromJson);

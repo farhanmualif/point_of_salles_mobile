@@ -348,7 +348,6 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         }
         paymentType = 'VA';
         codeBank = _selectedBank;
-        debugPrint('Selected Bank: $codeBank');
         break;
 
       case 'EWALLET':
@@ -358,13 +357,11 @@ class _CheckoutBottomSheetState extends State<CheckoutBottomSheet> {
         }
         paymentType = 'EWALLET';
         codeBank = _selectedEWallet;
-        debugPrint('Selected E-Wallet: $codeBank');
         break;
 
       case 'CASH':
         paymentType = null;
         codeBank = null;
-        debugPrint('Payment Method: CASH');
         break;
 
       default:

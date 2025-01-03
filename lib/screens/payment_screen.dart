@@ -30,11 +30,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.invoiceId != null) {
-      _loadPendingTransactionByInvoice(widget.invoiceId!);
-    } else {
-      _loadPendingTransaction();
-    }
+    debugPrint("invoice id: ${widget.invoiceId}");
+    _loadPendingTransactionByInvoice(widget.invoiceId!);
   }
 
   @override
@@ -74,26 +71,39 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Future<void> _loadPendingTransaction() async {
     try {
+      setState(() => _isLoading = true);
+
       final response = await _transaksiService.getPendingTransaction();
-      setState(() {
-        _isLoading = true;
-        if (response.status && response.data != null) {
+
+      if (!mounted) return;
+
+      debugPrint("response get pending: ${response.data}");
+      debugPrint("response get pending status: ${response.status}");
+      debugPrint("response get pending is null: ${response.data == null}");
+      if (response.status && response.data != null) {
+        setState(() {
           _transaksi = response.data;
+          _error = null;
           if (_transaksi?.vaPaymentStatus != null) {
             _startCountdown();
           }
-        } else {
-          _error = response.message;
-        }
-      });
+        });
+      } else {
+        debugPrint(
+            "error response get pending transaction: ${response.message}");
+        setState(() {
+          _error = response.message ?? 'Data tidak ditemukan';
+        });
+      }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = 'Terjadi kesalahan saat memuat data';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -121,6 +131,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      debugPrint("error get pending transaction by invoice: $e");
       setState(() {
         _error = 'Terjadi kesalahan saat memuat data';
       });
@@ -478,7 +489,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   Center(
                     child: ElevatedButton(
                       onPressed: () async {
-                        debugPrint("test ${_transaksi!.vaPaymentStatus}");
                         if (_transaksi!.vaPaymentStatus != null) {
                           await _checkPaymentStatus(
                               _transaksi!.vaPaymentStatus!.id);

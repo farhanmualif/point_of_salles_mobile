@@ -33,7 +33,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
 
   Future<void> _initPrinter() async {
     try {
-       if (!context.mounted) return;
+      if (!context.mounted) return;
       setState(() {
         _isInit = true;
       });
@@ -121,11 +121,11 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                         setState(() => _connecting = true);
                         try {
                           await printer.connect(_selectedDevice!);
-                           if (!context.mounted) return;
+                          if (!context.mounted) return;
                           Navigator.pop(context);
                           await printReceipt(context);
                         } catch (e) {
-                           if (!context.mounted) return;
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Error: ${e.toString()}'),
@@ -170,8 +170,8 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
     // Check final status
     bool bluetoothGranted = await Permission.bluetoothConnect.isGranted ||
         await Permission.bluetooth.isGranted;
-    bool scanGranted =
-        await Permission.bluetoothScan.isGranted || await Permission.location.isGranted;
+    bool scanGranted = await Permission.bluetoothScan.isGranted ||
+        await Permission.location.isGranted;
 
     if (!bluetoothGranted || !scanGranted) {
       if (!mounted) return false;
@@ -199,7 +199,8 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       setState(() => _loading = true);
 
       // Get receipt data from API
-      final transactionId = widget.data['external_id'] ?? widget.data['invoiceId'];
+      final transactionId =
+          widget.data['external_id'] ?? widget.data['invoiceId'];
       debugPrint("Fetching receipt data for ID: $transactionId");
       if (transactionId == null) {
         if (!mounted) return;
@@ -209,12 +210,13 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         setState(() => _loading = false);
         return;
       }
-      
-      final response = await _transactionService.getReceiptData(transactionId.toString());
+
+      final response =
+          await _transactionService.getReceiptData(transactionId.toString());
       debugPrint("Receipt API Response status: ${response.status}");
-      
+
       if (!mounted) return;
-      
+
       if (!response.status) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(response.message)),
@@ -224,17 +226,20 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       }
 
       final receiptData = response.data!;
-      
+
       // Print receipt header
       await printer.printCustom("Point of Sales", 2, 1);
       await printer.printCustom("--------------------------------", 1, 1);
-      
+
       // Print transaction info
-      await printer.printCustom("No. Invoice: ${receiptData['invoice_id'] ?? '-'}", 1, 0);
-      await printer.printCustom("Tanggal: ${receiptData['transaction_date'] ?? '-'}", 1, 0);
-      await printer.printCustom("Kasir: ${receiptData['customer_name'] ?? '-'}", 1, 0);
+      await printer.printCustom(
+          "No. Invoice: ${receiptData['invoice_id'] ?? '-'}", 1, 0);
+      await printer.printCustom(
+          "Tanggal: ${receiptData['transaction_date'] ?? '-'}", 1, 0);
+      await printer.printCustom(
+          "Kasir: ${receiptData['customer_name'] ?? '-'}", 1, 0);
       await printer.printCustom("--------------------------------", 1, 1);
-      
+
       // Print items
       final items = receiptData['items'] as List<dynamic>;
       for (var item in items) {
@@ -242,30 +247,38 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         final quantity = item['quantity']?.toString() ?? '0';
         final price = (item['price'] as num?)?.toDouble() ?? 0.0;
         final subtotal = (item['subtotal'] as num?)?.toDouble() ?? 0.0;
-        
+
         await printer.printCustom(productName, 1, 0);
-        await printer.printCustom("$quantity x ${CurrencyFormatter.formatRupiah(price)}", 1, 0);
-        await printer.printCustom(CurrencyFormatter.formatRupiah(subtotal), 1, 2);
+        await printer.printCustom(
+            "$quantity x ${CurrencyFormatter.formatRupiah(price)}", 1, 0);
+        await printer.printCustom(
+            CurrencyFormatter.formatRupiah(subtotal), 1, 2);
       }
-      
+
       await printer.printCustom("--------------------------------", 1, 1);
-      
+
       // Print total
-      final totalAmount = (receiptData['total_amount'] as num?)?.toDouble() ?? 0.0;
+      final totalAmount =
+          (receiptData['total_amount'] as num?)?.toDouble() ?? 0.0;
       await printer.printCustom("TOTAL:", 1, 0);
-      await printer.printCustom(CurrencyFormatter.formatRupiah(totalAmount), 2, 2);
-      
+      await printer.printCustom(
+          CurrencyFormatter.formatRupiah(totalAmount), 2, 2);
+
       // Print payment info
       await printer.printCustom("--------------------------------", 1, 1);
-      await printer.printCustom("Metode Pembayaran: ${receiptData['payment_method'] ?? 'CASH'}", 1, 0);
-      await printer.printCustom("Status: ${receiptData['payment_status'] ?? '-'}", 1, 0);
-      
+      await printer.printCustom(
+          "Metode Pembayaran: ${receiptData['payment_method'] ?? 'CASH'}",
+          1,
+          0);
+      await printer.printCustom(
+          "Status: ${receiptData['payment_status'] ?? '-'}", 1, 0);
+
       // Print footer
       await printer.printCustom("--------------------------------", 1, 1);
       await printer.printCustom("Terima Kasih", 1, 1);
       await printer.printCustom("Silakan datang kembali", 1, 1);
       await printer.printNewLine();
-      
+
       // Cut paper
       await printer.paperCut();
 
@@ -371,12 +384,16 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                       const SizedBox(height: 24),
                       _buildDetailRow(
                         'ID Transaksi',
-                        widget.data['external_id'] ?? widget.data['invoiceId'] ?? '',
+                        widget.data['external_id'] ??
+                            widget.data['invoiceId'] ??
+                            '',
                         copyable: true,
                       ),
                       _buildDetailRow(
                         'Tanggal',
-                        _formatDate(widget.data['tanggalBayar'] ?? widget.data['expiration_date'] ?? widget.data['created']),
+                        _formatDate(widget.data['tanggalBayar'] ??
+                            widget.data['expiration_date'] ??
+                            widget.data['created']),
                       ),
                       _buildDetailRow(
                           'Nominal',
@@ -384,12 +401,17 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                               double.parse(_getAmount(widget.data)))),
                       _buildDetailRow(
                         'No. Handphone',
-                        widget.data['account_number'] ?? widget.data['nomorHpAktif'] ?? '-',
+                        widget.data['account_number'] ??
+                            widget.data['nomorHpAktif'] ??
+                            '-',
                       ),
                       _buildDetailRow(
                         'Status',
-                        widget.data['status'] ?? widget.data['statusOrder'] ?? 'Unknown',
-                        isSuccess: (widget.data['status'] == 'INACTIVE' || widget.data['statusOrder'] == 'PAID'),
+                        widget.data['status'] ??
+                            widget.data['statusOrder'] ??
+                            'Unknown',
+                        isSuccess: (widget.data['status'] == 'INACTIVE' ||
+                            widget.data['statusOrder'] == 'PAID'),
                       ),
                     ],
                   ),
@@ -526,7 +548,9 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  (value == 'INACTIVE' || value == 'SUCCEEDED' || value == 'PAID')
+                  (value == 'INACTIVE' ||
+                          value == 'SUCCEEDED' ||
+                          value == 'PAID')
                       ? "Berhasil"
                       : "Gagal",
                   style: TextStyle(
